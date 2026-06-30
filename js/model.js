@@ -3,6 +3,13 @@ const norm = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9
 export const SECTION_REGISTRY = [
   { key: 'research', label: 'Featured Research', navLabel: 'ERC Research', kind: 'briefs',
     aliases: ['featured research', 'featured erc research', 'research briefs', 'erc research'], groups: [] },
+  { key: 'spotlight', label: 'ERC Spotlight', navLabel: 'Spotlight', kind: 'spotlight',
+    aliases: ['erc spotlight', 'spotlight'],
+    groups: [
+      { key: 'programs', label: 'Programs & Opportunities', aliases: ['programs and opportunities', 'programs', 'programs and ops'] },
+      { key: 'events', label: 'Events', aliases: ['events', 'erc events'] },
+      { key: 'happyhour', label: 'ERC Happy Hour', aliases: ['erc happy hour', 'happy hour'] },
+    ] },
   { key: 'events', label: 'Upcoming Events', navLabel: 'Events', kind: 'grouped-list',
     aliases: ['upcoming events', 'events', 'events and webinars', 'am events'],
     groups: [
@@ -31,8 +38,6 @@ export const SECTION_REGISTRY = [
       { key: 'federal', label: 'Federal', aliases: ['federal'] },
       { key: 'texas', label: 'Texas', aliases: ['texas', 'state'] },
     ] },
-  { key: 'happyhour', label: 'ERC Happy Hour', kind: 'happyhour',
-    aliases: ['erc happy hour', 'happy hour'], groups: [] },
 ];
 
 export function createEmptyIssue() {
