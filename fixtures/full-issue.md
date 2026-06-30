@@ -116,6 +116,8 @@ url: https://texastribune.org/tea-literacy-pilot
 
 ## ERC Happy Hour
 
-### Dates
-title: Monthly Happy Hour
-date: Wed, June 25 | 5:00 PM | Ice's Red House
+### Happy Hour
+title: ERC Happy Hour
+date: Wed, June 25
+time: 5:00 PM
+location: Ice's Red House

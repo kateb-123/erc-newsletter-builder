@@ -159,7 +159,6 @@ function buildGroupedList(secReg, sec) {
 
       // Divider between items within same group (not after featured group — uses section divider)
       const needsItemDivider = isEvents && i < items.length - 1;
-      const bottomPad = !isEvents && i === items.length - 1 ? '22px' : '0';
 
       if (isEvents) {
         rows += `<tr><td style="padding: ${topPad} 24px 0 40px;">
@@ -171,9 +170,7 @@ ${descLine}
           rows += `<tr><td style="padding: 14px 24px 0 40px;"><div style="border-top: 1px solid #e6e2dd; line-height: 1px; font-size: 1px;">&nbsp;</div></td></tr>`;
         }
       } else {
-        // Opportunities: last item in section gets bottom padding
-        const isLastItem = i === items.length - 1 && gk === presentGroups[presentGroups.length - 1];
-        rows += `<tr><td style="padding: ${topPad} 24px ${isLastItem ? '0' : '0'} 40px;">
+        rows += `<tr><td style="padding: ${topPad} 24px 0 40px;">
 <p style="margin:0 0 4px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 16px; font-weight: 700; color: #202020;">${titleLink}</p>
 ${oppMeta}
 </td></tr>`;
@@ -284,8 +281,10 @@ function buildHappyHour(sec) {
     const { fields } = item;
     const isLast = i === sec.items.length - 1;
     const bottomPad = isLast ? '0' : '7px';
-    // date field carries the formatted "Wed, June 25 | 5:00 PM | Ice's Red House" text
-    const dateText = fields.date || fields.title || '';
+    // Assemble date | time | location from separate fields (CONTENT_TEMPLATE grammar).
+    // Fall back to the raw date string if time/location are absent.
+    const dateParts = [fields.date, fields.time, fields.location].filter(Boolean);
+    const dateText = dateParts.length > 1 ? dateParts.join(' | ') : (fields.date || fields.title || '');
     rows += `<tr>
 <td style="vertical-align:top; width:14px; padding:0 8px ${bottomPad} 0;"><span style="font-family:${FONT_BODY}; font-size:14px; line-height:1.4; color:#404040;">&#8226;</span></td>
 <td style="vertical-align:top; padding:0 0 ${bottomPad} 0;"><p style="margin:0; line-height:1.4; font-family:${FONT_BODY}; font-size:14px; color:#404040;">${esc(dateText)}</p></td>
@@ -343,7 +342,8 @@ function buildHeader(issue) {
     })
     .map(secReg => {
       const anchor = anchorIdForSection(secReg.key);
-      return `<a href="#${anchor}" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">${esc(secReg.label)}</a>`;
+      const navText = secReg.navLabel ?? secReg.label;
+      return `<a href="#${anchor}" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">${esc(navText)}</a>`;
     });
   const navHtml = navLinks.join(' &nbsp;|&nbsp; ');
 
