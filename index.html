@@ -25,7 +25,19 @@
   <main class="wizard-body">
     <section data-step="upload" class="wizard-step">
       <h2>Step 1: Upload Content</h2>
-      <p>Paste or upload your newsletter markdown draft here. This step will let you load raw content for processing.</p>
+      <p>Drop a Markdown file below or click to choose one. Accepted formats: <code>.md</code>, <code>.markdown</code>, <code>.txt</code>.</p>
+
+      <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Drop zone for Markdown file">
+        <svg class="drop-icon" aria-hidden="true" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 32V16M24 16l-6 6M24 16l6 6" stroke="#913B3B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 32v4a4 4 0 004 4h24a4 4 0 004-4v-4" stroke="#913B3B" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <p class="drop-label">Drag &amp; drop your <strong>.md</strong> file here</p>
+        <label class="btn btn-secondary drop-btn" for="md-file">Choose File</label>
+        <input id="md-file" type="file" accept=".md,.markdown,.txt" class="visually-hidden" />
+      </div>
+
+      <div id="upload-status" class="upload-status" hidden></div>
     </section>
 
     <section data-step="triage" class="wizard-step" hidden>

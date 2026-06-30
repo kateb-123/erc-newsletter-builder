@@ -150,3 +150,93 @@ body {
 .btn-secondary:not(:disabled):hover {
   background: #d8d8d8;
 }
+
+/* --- Upload / drop zone ----------------------------------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.drop-zone {
+  margin-top: 20px;
+  border: 2px dashed #913B3B;
+  border-radius: 8px;
+  padding: 36px 24px;
+  text-align: center;
+  background: #faf8f7;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  outline: none;
+}
+
+.drop-zone:focus-visible {
+  box-shadow: 0 0 0 3px rgba(145,59,59,0.35);
+}
+
+.drop-zone--over {
+  background: #f3edec;
+  border-color: #500000;
+}
+
+.drop-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.drop-label {
+  color: #5C5C5C;
+  font-size: 14px;
+  margin: 0 0 14px;
+}
+
+.drop-btn {
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* --- Upload status ---------------------------------------- */
+.upload-status {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.upload-status ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.upload-status li {
+  margin-bottom: 4px;
+}
+
+.upload-status--error {
+  background: #fff0f0;
+  border: 1px solid #e8b4b4;
+  color: #7a1010;
+}
+
+.upload-status--warning {
+  background: #fffbf0;
+  border: 1px solid #e8d5a4;
+  color: #6b4f00;
+}
+
+.upload-status--success {
+  background: #f0faf3;
+  border: 1px solid #a4d4b0;
+  color: #1a5c2a;
+}
