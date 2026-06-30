@@ -263,36 +263,104 @@ function buildGroupedDigest(secReg, sec) {
 }
 
 /**
- * Builds the ERC Happy Hour section (kind: happyhour).
- * Renders as maroon eyebrow + intro line + bulleted dates.
+ * Builds the ERC Spotlight section (kind: spotlight).
+ * Groups: programs, events, happyhour — in registry order, only groups present in items.
+ * programs/events: bold title link + meta line + optional summary.
+ * happyhour: intro line + bulleted date | time | location per item.
  */
-function buildHappyHour(sec) {
+function buildSpotlight(secReg, sec) {
   if (!sec.enabled || !sec.items.length) return '';
 
-  // Lighter eyebrow group (no maroon file-tab section header) — Happy Hour
-  // is a small labeled block, not a first-class section.
-  let rows = eyebrow('ERC Happy Hour', true);
+  let rows = sectionHeader('spotlight', 'ERC Spotlight');
 
-  rows += `<tr><td style="padding: 7px 24px 18px 40px;">
+  // Build group map from items
+  const groupOrder = secReg.groups.map(g => g.key);
+  const groupMap = {};
+  for (const item of sec.items) {
+    const gk = item.group || '';
+    if (!groupMap[gk]) groupMap[gk] = [];
+    groupMap[gk].push(item);
+  }
+
+  // Collect present groups in registry order, unknown groups appended
+  const presentGroups = [];
+  for (const gk of groupOrder) {
+    if (groupMap[gk]) presentGroups.push(gk);
+  }
+  for (const gk of Object.keys(groupMap)) {
+    if (!groupOrder.includes(gk)) presentGroups.push(gk);
+  }
+
+  let firstGroup = true;
+
+  for (const gk of presentGroups) {
+    const items = groupMap[gk];
+    const groupDef = secReg.groups.find(g => g.key === gk);
+    const groupLabel = groupDef ? groupDef.label : gk;
+
+    rows += eyebrow(groupLabel, firstGroup);
+    firstGroup = false;
+
+    if (gk === 'happyhour') {
+      // Happy Hour: intro line + bulleted date | time | location
+      rows += `<tr><td style="padding: 7px 24px 18px 40px;">
 <p style="margin:0 0 9px; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">Join us for our monthly happy hour &#8212; no RSVP required, all are welcome.</p>
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;"><tbody>`;
 
-  sec.items.forEach((item, i) => {
-    const { fields } = item;
-    const isLast = i === sec.items.length - 1;
-    const bottomPad = isLast ? '0' : '7px';
-    // Assemble date | time | location from separate fields (CONTENT_TEMPLATE grammar).
-    // Fall back to the raw date string if time/location are absent.
-    const dateParts = [fields.date, fields.time, fields.location].filter(Boolean);
-    const dateText = dateParts.length > 1 ? dateParts.join(' | ') : (fields.date || fields.title || '');
-    rows += `<tr>
+      items.forEach((item, i) => {
+        const { fields } = item;
+        const isLast = i === items.length - 1;
+        const bottomPad = isLast ? '0' : '7px';
+        const dateParts = [fields.date, fields.time, fields.location].filter(Boolean);
+        const dateText = dateParts.length > 1 ? dateParts.join(' | ') : (fields.date || fields.title || '');
+        rows += `<tr>
 <td style="vertical-align:top; width:14px; padding:0 8px ${bottomPad} 0;"><span style="font-family:${FONT_BODY}; font-size:14px; line-height:1.4; color:#404040;">&#8226;</span></td>
 <td style="vertical-align:top; padding:0 0 ${bottomPad} 0;"><p style="margin:0; line-height:1.4; font-family:${FONT_BODY}; font-size:14px; color:#404040;">${esc(dateText)}</p></td>
 </tr>`;
-  });
+      });
 
-  rows += `</tbody></table>
+      rows += `</tbody></table>
 </td></tr>`;
+    } else {
+      // programs / events groups: bold title link + meta + optional summary
+      items.forEach((item, i) => {
+        const { fields } = item;
+        const topPad = i === 0 ? '7px' : '14px';
+        const titleLink = fields.url
+          ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;">${esc(fields.title || '')}</a>`
+          : esc(fields.title || '');
+
+        // Meta: use fields.meta if present, else join date | time | location
+        let metaText = '';
+        if (fields.meta) {
+          metaText = fields.meta;
+        } else {
+          const parts = [fields.date, fields.time, fields.location].filter(Boolean);
+          metaText = parts.join(' | ');
+        }
+        const metaLine = metaText
+          ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;">${esc(metaText)}</p>`
+          : '';
+
+        const summaryLine = fields.summary
+          ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">${esc(fields.summary)}</p>`
+          : '';
+
+        rows += `<tr><td style="padding: ${topPad} 24px 0 40px;">
+<p style="margin:0 0 4px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 16px; font-weight: 700; color: #202020;">${titleLink}</p>
+${metaLine}
+${summaryLine}
+</td></tr>`;
+
+        if (i < items.length - 1) {
+          rows += `<tr><td style="padding: 14px 24px 0 40px;"><div style="border-top: 1px solid #e6e2dd; line-height: 1px; font-size: 1px;">&nbsp;</div></td></tr>`;
+        }
+      });
+    }
+  }
+
+  // Closing bottom padding
+  rows += `<tr><td style="height: 22px; font-size: 1px; line-height: 22px;">&nbsp;</td></tr>`;
 
   return wrapSection(rows);
 }
@@ -310,16 +378,16 @@ ${rows}
 
 /**
  * Returns the HTML anchor id that each section builder emits via sectionHeader().
- * Keep in sync with buildBriefs, buildGroupedList, buildGroupedDigest, buildHappyHour.
+ * Keep in sync with buildBriefs, buildGroupedList, buildGroupedDigest, buildSpotlight.
  */
 function anchorIdForSection(sectionKey) {
   switch (sectionKey) {
     case 'research':      return 'research';
+    case 'spotlight':     return 'spotlight';
     case 'events':        return 'events';
     case 'opportunities': return 'opportunities';
     case 'policy':        return 'policy';
     case 'headlines':     return 'news';
-    case 'happyhour':     return 'happyhour';
     default:              return sectionKey;
   }
 }
@@ -334,9 +402,6 @@ function buildHeader(issue) {
   // Only sections that are enabled AND have items appear — same guard the builders use.
   const navLinks = SECTION_REGISTRY
     .filter(secReg => {
-      // Happy Hour renders as a lighter eyebrow group, not a file-tab
-      // section, so it is not a jump-nav target.
-      if (secReg.key === 'happyhour') return false;
       const sec = issue.sections[secReg.key];
       return sec && sec.enabled && sec.items.length > 0;
     })
@@ -474,8 +539,8 @@ export function renderNewsletter(issue) {
       case 'grouped-digest':
         sectionHtml = buildGroupedDigest(secReg, sec);
         break;
-      case 'happyhour':
-        sectionHtml = buildHappyHour(sec);
+      case 'spotlight':
+        sectionHtml = buildSpotlight(secReg, sec);
         break;
     }
     if (sectionHtml) parts.push(sectionHtml);

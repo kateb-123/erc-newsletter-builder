@@ -18,7 +18,7 @@ test('render includes date, fonts, and a file-tab section header', () => {
 test('disabled/empty section is omitted from output', () => {
   const issue = issueOf('sparse-issue.md');
   const html = renderNewsletter(issue);
-  assert.ok(!/ERC Happy Hour/i.test(html)); // happyhour absent in sparse fixture
+  assert.ok(!/ERC Happy Hour/i.test(html)); // no spotlight/happy-hour group in sparse fixture
 });
 
 test('featured event renders under a FEATURED eyebrow', () => {
@@ -65,12 +65,19 @@ test('"See more" tail link text appears in output', () => {
   );
 });
 
-test('jump-nav does NOT contain #spotlight (Fix 1 guard)', () => {
+test('spotlight renders between research and events with all three groups', () => {
   const html = renderNewsletter(issueOf('full-issue.md'));
-  assert.ok(
-    !html.includes('#spotlight'),
-    'Jump-nav must not contain a #spotlight link — no Spotlight section exists'
-  );
+  const iSpot = html.indexOf('ERC Spotlight');
+  const iResearch = html.indexOf('ERC Research');
+  const iEvents = html.indexOf('Upcoming Events');
+  assert.ok(iResearch < iSpot && iSpot < iEvents, 'spotlight sits between research and events');
+  assert.match(html, /Programs &amp; Opportunities/);
+  assert.match(html, /ERC HAPPY HOUR|ERC Happy Hour/i);
+});
+
+test('spotlight is a jump-nav target', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.match(html, /#spotlight/);
 });
 
 test('jump-nav contains anchor for the events section', () => {
