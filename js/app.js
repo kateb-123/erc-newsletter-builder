@@ -7,6 +7,7 @@
  */
 
 import { parseMarkdown } from './parser.js';
+import { SECTION_REGISTRY } from './model.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -74,6 +75,9 @@ function goTo(step) {
   // Enable/disable nav buttons
   btnBack.disabled = idx === 0;
   btnNext.disabled = idx === STEPS.length - 1;
+
+  // Step-specific render hooks
+  if (step === 'triage') renderTriage();
 }
 
 // ---------------------------------------------------------------------------
@@ -221,10 +225,192 @@ if (dropZone) {
 
 // Expose for testability
 window.__handleFile = handleFile;
+// __renderTriage exposed after function definition below
+
+// ---------------------------------------------------------------------------
+// Triage step
+// ---------------------------------------------------------------------------
+
+/**
+ * Render the triage step UI from `state.issue`.
+ * Called each time the wizard navigates to the 'triage' step.
+ */
+function renderTriage() {
+  const container = document.querySelector('[data-step="triage"]');
+  if (!container) return;
+
+  // Clear existing content, keeping the h2
+  const h2 = container.querySelector('h2');
+  container.innerHTML = '';
+  if (h2) container.appendChild(h2);
+
+  const issue = state.issue;
+
+  // ── Meta fields ──────────────────────────────────────────────────────────
+  const metaSection = document.createElement('div');
+  metaSection.className = 'triage-meta';
+
+  // Date field
+  const dateLabel = document.createElement('label');
+  dateLabel.className = 'triage-field-label';
+  dateLabel.textContent = 'Issue date';
+  const dateInput = document.createElement('input');
+  dateInput.type = 'text';
+  dateInput.className = 'triage-field-input';
+  dateInput.value = issue ? (issue.date || '') : '';
+  dateInput.addEventListener('input', () => {
+    if (issue) issue.date = dateInput.value;
+  });
+  dateLabel.appendChild(dateInput);
+  metaSection.appendChild(dateLabel);
+
+  // Header image URL field
+  const imgLabel = document.createElement('label');
+  imgLabel.className = 'triage-field-label';
+  imgLabel.textContent = 'Header image URL';
+  const imgInput = document.createElement('input');
+  imgInput.type = 'text';
+  imgInput.className = 'triage-field-input triage-field-input--wide';
+  imgInput.value = issue ? (issue.headerImageUrl || '') : '';
+  imgInput.addEventListener('input', () => {
+    if (issue) issue.headerImageUrl = imgInput.value;
+  });
+  imgLabel.appendChild(imgInput);
+  metaSection.appendChild(imgLabel);
+
+  container.appendChild(metaSection);
+
+  // ── Sections ─────────────────────────────────────────────────────────────
+  const sectionsHeading = document.createElement('h3');
+  sectionsHeading.className = 'triage-sections-heading';
+  sectionsHeading.textContent = 'Sections';
+  container.appendChild(sectionsHeading);
+
+  const sectionsList = document.createElement('div');
+  sectionsList.className = 'triage-sections-list';
+
+  for (const reg of SECTION_REGISTRY) {
+    const secData = issue && issue.sections && issue.sections[reg.key];
+    const items = (secData && secData.items) || [];
+    const isEmpty = items.length === 0;
+    const isEnabled = secData ? secData.enabled : false;
+
+    const row = document.createElement('div');
+    row.className = 'triage-section-row';
+
+    // Checkbox
+    const checkLabel = document.createElement('label');
+    checkLabel.className = 'triage-toggle-label';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'triage-toggle';
+    checkbox.checked = isEnabled;
+    checkbox.addEventListener('change', () => {
+      if (secData) secData.enabled = checkbox.checked;
+    });
+    checkLabel.appendChild(checkbox);
+
+    // Section name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'triage-section-name';
+    nameSpan.textContent = reg.label;
+    checkLabel.appendChild(nameSpan);
+
+    row.appendChild(checkLabel);
+
+    // Note for empty/disabled sections
+    if (isEmpty) {
+      const note = document.createElement('span');
+      note.className = 'triage-section-note';
+      note.textContent = '(empty — off)';
+      row.appendChild(note);
+    }
+
+    sectionsList.appendChild(row);
+
+    // Events: featured + reorder controls
+    if (reg.key === 'events' && items.length > 0) {
+      const eventsContainer = document.createElement('div');
+      eventsContainer.className = 'triage-events-list';
+
+      const renderEventsList = () => {
+        eventsContainer.innerHTML = '';
+        const currentItems = (issue && issue.sections && issue.sections.events && issue.sections.events.items) || [];
+        currentItems.forEach((item, idx) => {
+          const evRow = document.createElement('div');
+          evRow.className = 'triage-event-row';
+
+          // Star / featured radio-like button
+          const starBtn = document.createElement('button');
+          starBtn.type = 'button';
+          starBtn.className = 'triage-star-btn' + (item.featured ? ' triage-star-btn--active' : '');
+          starBtn.setAttribute('aria-label', item.featured ? 'Remove featured' : 'Set as featured event');
+          starBtn.setAttribute('aria-pressed', String(!!item.featured));
+          starBtn.textContent = '⭐';
+          starBtn.addEventListener('click', () => {
+            const evItems = issue.sections.events.items;
+            const wasFeatured = item.featured;
+            // Toggle: if already featured, un-feature it; otherwise feature it exclusively
+            evItems.forEach((ev) => { ev.featured = false; });
+            if (!wasFeatured) item.featured = true;
+            renderEventsList();
+          });
+
+          // Title (user-derived — use textContent)
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'triage-event-title';
+          titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
+
+          // Up button
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button';
+          upBtn.className = 'triage-reorder-btn';
+          upBtn.textContent = '↑';
+          upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = idx === 0;
+          upBtn.addEventListener('click', () => {
+            const evItems = issue.sections.events.items;
+            if (idx > 0) {
+              [evItems[idx - 1], evItems[idx]] = [evItems[idx], evItems[idx - 1]];
+              renderEventsList();
+            }
+          });
+
+          // Down button
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button';
+          downBtn.className = 'triage-reorder-btn';
+          downBtn.textContent = '↓';
+          downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = idx === currentItems.length - 1;
+          downBtn.addEventListener('click', () => {
+            const evItems = issue.sections.events.items;
+            if (idx < evItems.length - 1) {
+              [evItems[idx], evItems[idx + 1]] = [evItems[idx + 1], evItems[idx]];
+              renderEventsList();
+            }
+          });
+
+          evRow.appendChild(starBtn);
+          evRow.appendChild(titleSpan);
+          evRow.appendChild(upBtn);
+          evRow.appendChild(downBtn);
+          eventsContainer.appendChild(evRow);
+        });
+      };
+
+      renderEventsList();
+      sectionsList.appendChild(eventsContainer);
+    }
+  }
+
+  container.appendChild(sectionsList);
+}
 
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 
 window.__state = state;
+window.__renderTriage = renderTriage;
 goTo('upload');
