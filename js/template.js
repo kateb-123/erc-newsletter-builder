@@ -92,14 +92,16 @@ ${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BO
     }
   });
 
-  // Submit callout
-  rows += `
+  // Submit callout — optional, toggled per issue in Triage (default on).
+  if (sec.showSubmit !== false) {
+    rows += `
 <tr><td style="padding: 20px 24px 22px 24px;">
 <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:80%; background-color:#f6f6f6; margin:0 auto;"><tbody><tr><td style="padding: 14px 22px;">
 <p style="margin:0 0 5px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 14px; font-weight: 700;"><a href="https://forms.office.com/Pages/ResponsePage.aspx?id=44HzaNpGuUe6V28yK48NoV5eaARTlZdIspuMdxu3p_lUQkwwS0pRMzgzTlE2MktPRjZCRDcwUDgxRS4u" target="_blank" rel="noopener" style="color: rgb(80, 0, 0); text-decoration: none;">Submit Your Research for an ERC Research Brief &#8594;</a></p>
 <p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 13px; color: #404040;">Working on research that could reach a broader audience? The ERC is accepting submissions for a research brief or other public-facing product &#8212; share a recent publication or working paper.</p>
 </td></tr></tbody></table>
 </td></tr>`;
+  }
 
   return wrapSection(rows);
 }

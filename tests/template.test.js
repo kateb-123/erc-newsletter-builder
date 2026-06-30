@@ -21,6 +21,14 @@ test('disabled/empty section is omitted from output', () => {
   assert.ok(!/ERC Happy Hour/i.test(html)); // no spotlight/happy-hour group in sparse fixture
 });
 
+test('Submit callout shows by default and is omitted when showSubmit is false', () => {
+  const marker = 'Submit Your Research for an ERC Research Brief';
+  const issue = issueOf('full-issue.md');
+  assert.ok(renderNewsletter(issue).includes(marker), 'callout should show by default');
+  issue.sections.research.showSubmit = false;
+  assert.ok(!renderNewsletter(issue).includes(marker), 'callout should be omitted when toggled off');
+});
+
 test('featured event renders under a FEATURED eyebrow', () => {
   const html = renderNewsletter(issueOf('full-issue.md'));
   assert.match(html, /FEATURED/i);

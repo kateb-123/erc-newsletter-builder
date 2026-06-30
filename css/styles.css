@@ -119,9 +119,18 @@ body {
   margin: 0 auto;
 }
 
-/* Edit step needs extra width for the two-pane layout */
+/* Edit step needs extra width for the two-pane layout. Trim the surrounding
+   padding so the preview gets close to the newsletter's true 705px width and
+   doesn't have to scale down as much (no scaling at all on a wide window). */
 .wizard-body:has([data-step="edit"]:not([hidden])) {
-  max-width: 1120px;
+  max-width: 1200px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.wizard-step[data-step="edit"] {
+  padding-left: 18px;
+  padding-right: 18px;
 }
 
 .wizard-step {
@@ -414,6 +423,18 @@ body {
   background: #faf8f7;
 }
 
+/* Sub-option nested under a section (e.g. the Submit callout toggle) */
+.triage-subtoggle-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px 8px 34px;
+}
+
+.triage-subtoggle-row .triage-section-name {
+  font-size: 13px;
+  color: #555;
+}
+
 .triage-toggle-label {
   display: flex;
   align-items: center;
@@ -553,38 +574,70 @@ body {
   margin-top: 16px;
 }
 
-/* Large full-width editable preview iframe */
+/* In-page editable preview: scaled to fit the pane width, page scrolls
+   vertically (no inner box, no horizontal scroll). The wrapper clips any
+   sub-pixel overflow and reserves the scaled height; JS sets the iframe's
+   width/height/transform on load and resize (see renderEdit). */
+/* Two-column edit step: preview on the left, editor panel as a sticky
+   sidebar on the right. The layout is flex so the preview takes the full
+   width when no editor is open and reflows narrower when one opens. */
+.edit-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.edit-preview-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Full height — the iframe grows to the newsletter's full height so the whole
+     thing scrolls with the PAGE (one scrollbar, no inner scroll region). */
+  overflow: hidden;
+}
+
 .edit-preview-iframe {
   display: block;
-  width: 100%;
-  height: 760px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-top: 16px;
+  border: 0;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  transform-origin: top left;
 }
 
 /* --- Field editor panel (click-to-edit, edit step) -------- */
 
 /*
- * Floats above the edit step container.
- * Positioned sticky at top of the container so it stays visible
- * while the user scrolls the preview iframe.
+ * Floating overlay pinned to the top-right of the viewport. It's OUT of layout
+ * flow (position: fixed) so opening it doesn't reflow/rescale the preview —
+ * the newsletter stays put, no jump. Stays in view while the page scrolls.
  */
 .field-editor-panel {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: fixed;
+  top: 132px;
+  right: 28px;
+  z-index: 50;
+  width: 340px;
+  max-height: calc(100vh - 156px);
+  overflow-y: auto;
   background: #fff;
   border: 2px solid #913B3B;
   border-radius: 7px;
-  box-shadow: 0 4px 18px rgba(80,0,0,0.14), 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 28px rgba(80,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12);
   padding: 14px 16px 14px;
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* When there isn't room beside the newsletter, JS adds this class to dock the
+   panel as a bottom sheet instead (so it never overlaps the content). */
+.field-editor-panel--sheet {
+  top: auto;
+  bottom: 12px;
+  right: 12px;
+  left: 12px;
+  width: auto;
+  max-width: none;
+  max-height: 55vh;
 }
 
 .field-editor-header {
@@ -596,11 +649,26 @@ body {
 
 .field-editor-label {
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #913B3B;
+  line-height: 1.3;
+}
+
+/* One stacked group per field inside the item editor */
+.field-editor-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-editor-sublabel {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #913B3B;
+  letter-spacing: 0.8px;
+  color: #9a8a8a;
 }
 
 .field-editor-close {
@@ -644,12 +712,30 @@ body {
 .field-editor-actions {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
+  /* "Done" on the right, the quiet "Revert" link pushed to the far left so
+     they're not adjacent and can't be hit by accident. */
+  justify-content: space-between;
 }
 
-.field-editor-revert-btn {
-  font-size: 12px;
-  padding: 6px 14px;
+/* Revert is destructive-ish (throws away edits), so make it a subdued text
+   link rather than a button — easy to find, hard to click by accident. */
+.field-editor-revert-btn,
+.field-editor-revert-btn:not(:disabled):hover,
+.field-editor-revert-btn:not(:disabled):active {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: #9a8a8a;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  padding: 6px 2px;
+}
+
+.field-editor-revert-btn:not(:disabled):hover {
+  color: #500000;
+  text-decoration: underline;
 }
 
 .field-editor-done-btn {

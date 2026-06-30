@@ -320,20 +320,8 @@ function renderTriage() {
   dateLabel.appendChild(dateInput);
   metaSection.appendChild(dateLabel);
 
-  // Header image URL field
-  const imgLabel = document.createElement('label');
-  imgLabel.className = 'triage-field-label';
-  imgLabel.textContent = 'Header image URL';
-  const imgInput = document.createElement('input');
-  imgInput.type = 'text';
-  imgInput.className = 'triage-field-input triage-field-input--wide';
-  imgInput.value = issue ? (issue.headerImageUrl || '') : '';
-  imgInput.addEventListener('input', () => {
-    if (issue) issue.headerImageUrl = imgInput.value;
-    scheduleSave();
-  });
-  imgLabel.appendChild(imgInput);
-  metaSection.appendChild(imgLabel);
+  // Header image is a fixed/saved asset — not edited per issue. The renderer
+  // falls back to the canonical header URL when issue.headerImageUrl is empty.
 
   container.appendChild(metaSection);
 
@@ -406,6 +394,29 @@ function renderTriage() {
     }
 
     sectionsList.appendChild(row);
+
+    // ERC Research: optional "Submit your research" callout toggle (default on)
+    if (reg.key === 'research' && items.length > 0) {
+      const subRow = document.createElement('div');
+      subRow.className = 'triage-subtoggle-row';
+      const subLabel = document.createElement('label');
+      subLabel.className = 'triage-toggle-label';
+      const subCb = document.createElement('input');
+      subCb.type = 'checkbox';
+      subCb.className = 'triage-toggle';
+      subCb.checked = secData.showSubmit !== false;
+      subCb.addEventListener('change', () => {
+        secData.showSubmit = subCb.checked;
+        scheduleSave();
+      });
+      subLabel.appendChild(subCb);
+      const subName = document.createElement('span');
+      subName.className = 'triage-section-name';
+      subName.textContent = 'Include “Submit your research” callout';
+      subLabel.appendChild(subName);
+      subRow.appendChild(subLabel);
+      sectionsList.appendChild(subRow);
+    }
 
     // Events and Spotlight: grouped display with featured checkbox (events) or plain grouped list (spotlight)
     const isGroupedSection = (reg.key === 'events' || reg.key === 'spotlight') && items.length > 0 && reg.groups && reg.groups.length > 0;
@@ -548,9 +559,14 @@ const EDIT_HOVER_CSS = `
   border-radius: 2px;
   transition: outline 0.1s;
 }
-[data-edit-field]:hover {
-  outline: 2px solid #913B3B;
-  outline-offset: 2px;
+/* Hovering any field highlights every field of that whole item (applied by JS),
+   since clicking edits the whole item at once. Soft translucent fill (not a
+   hard outline) so the item reads as one gentle highlight. The matching
+   box-shadow pads the fill out a few px and bridges the gaps between fields. */
+.ec-edit-hover {
+  background-color: rgba(254, 200, 102, 0.35);
+  box-shadow: 0 0 0 4px rgba(254, 200, 102, 0.35);
+  border-radius: 2px;
 }
 `;
 
@@ -560,6 +576,29 @@ const EDIT_HOVER_CSS = `
  * @type {{ panel: HTMLElement, ref: object }|null}
  */
 let activeEditor = null;
+
+/**
+ * The window-resize listener that re-fits the preview to the pane width.
+ * Tracked at module scope so re-entering the edit step removes the prior one
+ * instead of stacking listeners.
+ * @type {(() => void)|null}
+ */
+let previewResizeHandler = null;
+
+/**
+ * Re-fit the preview to the current pane width. Set by renderEdit so the field
+ * editor (which changes the layout when it opens/closes) can trigger a refit.
+ * @type {(() => void)|null}
+ */
+let refitPreview = null;
+
+/** True newsletter width (px). The preview is scaled down to fit narrower panes. */
+const PREVIEW_WIDTH = 705;
+
+/** Cap the preview at 87% of true size (never larger); it scales down further
+    on narrow panes so there's never a horizontal scrollbar. The freed space to
+    the right of the newsletter is where the editor box docks. */
+const PREVIEW_MAX_SCALE = 0.87;
 
 /**
  * Re-render the editable iframe (after an edit) and re-attach listeners.
@@ -585,7 +624,35 @@ function wireIframeEditing(iframe, editStepContainer) {
   style.textContent = EDIT_HOVER_CSS;
   (doc.head || doc.documentElement).appendChild(style);
 
-  // Click listener — find nearest element with data-edit-field
+  // Hover affordance — highlight EVERY field of the item under the cursor, so
+  // it's clear the click edits the whole item, not just the piece hovered.
+  let hovered = [];
+  const clearHover = () => {
+    hovered.forEach((el) => el.classList.remove('ec-edit-hover'));
+    hovered = [];
+  };
+  doc.addEventListener('mouseover', (e) => {
+    const t = e.target.closest('[data-edit-field]');
+    if (!t) {
+      clearHover();
+      return;
+    }
+    const { editSection: section, editItem: item } = t.dataset;
+    const els = collectItemNodes(doc, section, item);
+    if (els[0] === hovered[0] && els.length === hovered.length) return; // same group
+    clearHover();
+    els.forEach((el) => el.classList.add('ec-edit-hover'));
+    hovered = els;
+  });
+  doc.addEventListener('mouseout', (e) => {
+    const to = e.relatedTarget && e.relatedTarget.closest
+      ? e.relatedTarget.closest('[data-edit-field]')
+      : null;
+    if (!to) clearHover();
+  });
+
+  // Click listener — open an editor for the whole item the clicked field
+  // belongs to (all of its fields at once), not just the one piece clicked.
   doc.addEventListener('click', (e) => {
     const target = e.target.closest('[data-edit-field]');
     if (!target) return;
@@ -595,43 +662,102 @@ function wireIframeEditing(iframe, editStepContainer) {
       e.preventDefault();
     }
 
-    const { editSection: section, editItem: item, editField: field } = target.dataset;
-    if (!field) return;
+    const { editSection: section, editItem: item } = target.dataset;
+    if (!section) return;
 
-    openFieldEditor({ section, item, field }, iframe, editStepContainer);
+    const refs = collectItemFields(doc, section, item);
+    if (refs.length) openItemEditor(refs, iframe, editStepContainer);
   });
 }
 
 /**
- * Open the focused editor panel for a specific field.
+ * Gather every editable field belonging to one item (or one section-level
+ * field group, when there is no item), in document order, de-duplicated.
+ * @param {Document} doc - the preview iframe's document
+ * @param {string} section
+ * @param {string|undefined} item
+ * @returns {Array<{ section: string, item?: string, field: string }>}
+ */
+function collectItemNodes(doc, section, item) {
+  return item
+    ? [...doc.querySelectorAll(
+        `[data-edit-section="${section}"][data-edit-item="${item}"][data-edit-field]`
+      )]
+    : [...doc.querySelectorAll(`[data-edit-section="${section}"][data-edit-field]`)]
+        .filter((n) => !n.dataset.editItem);
+}
+
+function collectItemFields(doc, section, item) {
+  const nodes = collectItemNodes(doc, section, item);
+
+  const seen = new Set();
+  const refs = [];
+  for (const n of nodes) {
+    const field = n.dataset.editField;
+    if (!field || seen.has(field)) continue;
+    seen.add(field);
+    refs.push({ section, item, field });
+  }
+  // Titles render as hyperlinks, so expose the link URL for editing too
+  // (right under the title). The url isn't its own visible element, so it
+  // won't be picked up above — add it explicitly. Also lets you ADD a link
+  // to an item that doesn't have one yet.
+  if (seen.has('title') && !seen.has('url')) {
+    const ti = refs.findIndex((r) => r.field === 'title');
+    refs.splice(ti + 1, 0, { section, item, field: 'url' });
+  }
+  return refs;
+}
+
+/** Friendly sub-labels for known field keys (fallback: capitalized key). */
+const FIELD_LABELS = {
+  title: 'Title',
+  url: 'Link URL',
+  meta: 'Details',
+  summary: 'Summary',
+  description: 'Description',
+  author: 'Author',
+  authors: 'Authors',
+  intro: 'Intro',
+  date: 'Date',
+  name: 'Name',
+  eyebrow: 'Label',
+};
+
+/** Title-case a section key for the panel header (e.g. "spotlight" → "Spotlight"). */
+function humanize(key) {
+  return String(key || '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Open the editor panel for a whole item — one labeled input per field, so the
+ * user edits the title, details, summary, etc. together in one box.
  * Replaces any currently-open editor.
- * @param {{ section: string, item?: string, field: string }} ref
+ * @param {Array<{ section: string, item?: string, field: string }>} refs
  * @param {HTMLIFrameElement} iframe
  * @param {HTMLElement} container - the edit step container (parent page)
  */
-function openFieldEditor(ref, iframe, container) {
+function openItemEditor(refs, iframe, container) {
   // Close any previous editor
   closeFieldEditor();
-
-  const currentValue = getField(state.issue, ref) ?? '';
-  const isLong = ref.field === 'summary' || ref.field === 'intro';
+  if (!refs.length) return;
 
   const panel = document.createElement('div');
   panel.className = 'field-editor-panel';
   panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-label', `Edit ${ref.field}`);
+  panel.setAttribute('aria-label', 'Edit item');
 
-  // Header row
+  // Header row — show the item's title (recognizable) or the section name.
   const header = document.createElement('div');
   header.className = 'field-editor-header';
 
   const labelEl = document.createElement('span');
   labelEl.className = 'field-editor-label';
-  // Build a human-readable label: "spotlight › date", "research › title", etc.
-  const labelText = ref.item
-    ? `${ref.section} › ${ref.field}`
-    : ref.field;
-  labelEl.textContent = labelText;
+  const titleRef = refs.find((r) => r.field === 'title');
+  const titleVal = titleRef ? (getField(state.issue, titleRef) || '').trim() : '';
+  labelEl.textContent = titleVal || humanize(refs[0].section);
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
@@ -644,31 +770,46 @@ function openFieldEditor(ref, iframe, container) {
   header.appendChild(closeBtn);
   panel.appendChild(header);
 
-  // Input element (textarea for long fields, input for short)
-  let inputEl;
-  if (isLong) {
-    inputEl = document.createElement('textarea');
-    inputEl.className = 'field-editor-textarea';
-    inputEl.rows = 5;
-  } else {
-    inputEl = document.createElement('input');
-    inputEl.type = 'text';
-    inputEl.className = 'field-editor-input';
-  }
-  // Use .value (not innerHTML) — never put user text in HTML
-  inputEl.value = currentValue;
-
   // Debounce the iframe re-render so typing doesn't reset its scroll on every
   // keystroke (state + autosave still update immediately).
   const debouncedPreview = debounce(() => refreshEditIframe(iframe), 350);
 
-  inputEl.addEventListener('input', () => {
-    setField(state.issue, ref, inputEl.value);
-    scheduleSave();
-    debouncedPreview();
-  });
+  // One labeled input (textarea for long fields) per field.
+  const fieldInputs = [];
+  for (const ref of refs) {
+    const group = document.createElement('div');
+    group.className = 'field-editor-group';
 
-  panel.appendChild(inputEl);
+    const sub = document.createElement('span');
+    sub.className = 'field-editor-sublabel';
+    sub.textContent = FIELD_LABELS[ref.field] || humanize(ref.field);
+
+    const isLong =
+      ref.field === 'summary' || ref.field === 'intro' || ref.field === 'description';
+    let inputEl;
+    if (isLong) {
+      inputEl = document.createElement('textarea');
+      inputEl.className = 'field-editor-textarea';
+      inputEl.rows = 4;
+    } else {
+      inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.className = 'field-editor-input';
+    }
+    // Use .value (not innerHTML) — never put user text in HTML
+    inputEl.value = getField(state.issue, ref) ?? '';
+
+    inputEl.addEventListener('input', () => {
+      setField(state.issue, ref, inputEl.value);
+      scheduleSave();
+      debouncedPreview();
+    });
+
+    group.appendChild(sub);
+    group.appendChild(inputEl);
+    panel.appendChild(group);
+    fieldInputs.push({ ref, inputEl });
+  }
 
   // Action row
   const actions = document.createElement('div');
@@ -678,10 +819,13 @@ function openFieldEditor(ref, iframe, container) {
   revertBtn.type = 'button';
   revertBtn.className = 'btn btn-secondary field-editor-revert-btn';
   revertBtn.textContent = 'Revert to original';
+  // Reverts every field shown in this editor back to the uploaded baseline.
   revertBtn.addEventListener('click', () => {
-    const originalValue = getField(state.baseline, ref) ?? '';
-    inputEl.value = originalValue;
-    setField(state.issue, ref, originalValue);
+    for (const { ref, inputEl } of fieldInputs) {
+      const originalValue = getField(state.baseline, ref) ?? '';
+      inputEl.value = originalValue;
+      setField(state.issue, ref, originalValue);
+    }
     scheduleSave();
     refreshEditIframe(iframe);
   });
@@ -696,11 +840,19 @@ function openFieldEditor(ref, iframe, container) {
   actions.appendChild(doneBtn);
   panel.appendChild(actions);
 
-  container.appendChild(panel);
-  activeEditor = { panel, ref };
+  // Place the panel in the edit-step's flex row so it sits as a sidebar to the
+  // right of the preview (falls back to the container if the layout is absent).
+  const layout = container.querySelector('.edit-layout') || container;
+  layout.appendChild(panel);
+  activeEditor = { panel, refs };
 
-  // Focus the input after it's in the DOM
-  requestAnimationFrame(() => inputEl.focus());
+  // The panel is a fixed overlay (out of flow), so the preview doesn't reflow
+  // and needs no refit — opening the editor leaves the newsletter exactly put.
+  // Dock it into the empty space to the right of the scaled newsletter.
+  positionEditorPanel(panel);
+
+  // Focus the first input after it's in the DOM
+  requestAnimationFrame(() => fieldInputs[0] && fieldInputs[0].inputEl.focus());
 }
 
 /** Remove the active editor panel if one exists. */
@@ -708,6 +860,35 @@ function closeFieldEditor() {
   if (activeEditor) {
     activeEditor.panel.remove();
     activeEditor = null;
+  }
+}
+
+/**
+ * Dock the (fixed) editor panel into the empty space to the RIGHT of the
+ * scaled newsletter, so it doesn't overlap the content. If there isn't enough
+ * room beside it, fall back to a bottom sheet. Called on open and on resize.
+ * @param {HTMLElement} panel
+ */
+function positionEditorPanel(panel) {
+  const wrap = document.querySelector('.edit-preview-wrap');
+  if (!wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  const scale = Math.min(PREVIEW_MAX_SCALE, wrap.clientWidth / PREVIEW_WIDTH);
+  const gap = 16;
+  const left = rect.left + PREVIEW_WIDTH * scale + gap;
+  const available = rect.right - left;
+  if (available >= 280) {
+    // Enough gutter — sit beside the newsletter, filling the leftover space.
+    panel.classList.remove('field-editor-panel--sheet');
+    panel.style.left = Math.round(left) + 'px';
+    panel.style.right = 'auto';
+    panel.style.width = Math.round(Math.min(available, 460)) + 'px';
+  } else {
+    // Too narrow to fit beside — dock as a bottom sheet (CSS class).
+    panel.classList.add('field-editor-panel--sheet');
+    panel.style.left = '';
+    panel.style.right = '';
+    panel.style.width = '';
   }
 }
 
@@ -735,17 +916,73 @@ function renderEdit() {
     return;
   }
 
+  // Drop any resize listener left over from a previous visit to this step.
+  if (previewResizeHandler) {
+    window.removeEventListener('resize', previewResizeHandler);
+    previewResizeHandler = null;
+  }
+
+  const layout = document.createElement('div');
+  layout.className = 'edit-layout';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'edit-preview-wrap';
+
   const iframe = document.createElement('iframe');
   iframe.className = 'edit-preview-iframe';
   iframe.setAttribute('title', 'Newsletter preview — click fields to edit');
 
-  // Wire click-to-edit on every load (fires on each srcdoc set)
+  // Render the newsletter at its true width, then zoom it down so the full
+  // width fits the pane (no horizontal scroll). `zoom` (unlike transform:scale)
+  // shrinks the layout box too, so the iframe reports its scaled height and the
+  // wrap's max-height cap + overflow give a single, normal-sized scrollbar
+  // inside the bounded preview region.
+  function fitPreview() {
+    const doc = iframe.contentDocument;
+    if (!doc || !doc.body) return;
+    // Pane not laid out yet (e.g. load fired while the step was hidden). Skip
+    // rather than locking in zoom 0; a later refit will pick up the width.
+    if (!wrap.clientWidth) return;
+    // Measure at the true width with zoom reset, so clientWidth math is honest.
+    iframe.style.zoom = '1';
+    iframe.style.width = PREVIEW_WIDTH + 'px';
+    const contentHeight = Math.max(
+      doc.body.scrollHeight,
+      doc.documentElement.scrollHeight
+    );
+    iframe.style.height = contentHeight + 'px';
+    const scale = Math.min(PREVIEW_MAX_SCALE, wrap.clientWidth / PREVIEW_WIDTH);
+    iframe.style.zoom = String(scale);
+  }
+  refitPreview = fitPreview;
+
+  // Wire click-to-edit and re-fit on every load (fires on each srcdoc set).
+  // The rAF refit covers the case where the pane width isn't measurable at the
+  // instant load fires (layout not yet flushed); the image listeners re-fit
+  // once the (externally hosted) header banner finishes loading, so the iframe
+  // height matches the final content height and no inner scrollbar appears.
   iframe.addEventListener('load', () => {
     wireIframeEditing(iframe, container);
+    fitPreview();
+    requestAnimationFrame(fitPreview);
+    const doc = iframe.contentDocument;
+    if (doc) {
+      [...doc.images].forEach((img) => {
+        if (!img.complete) img.addEventListener('load', fitPreview, { once: true });
+      });
+    }
   });
 
+  previewResizeHandler = debounce(() => {
+    fitPreview();
+    if (activeEditor) positionEditorPanel(activeEditor.panel);
+  }, 150);
+  window.addEventListener('resize', previewResizeHandler);
+
+  wrap.appendChild(iframe);
+  layout.appendChild(wrap);
+  container.appendChild(layout);
   iframe.srcdoc = renderNewsletter(state.issue, { editable: true });
-  container.appendChild(iframe);
 }
 
 // ---------------------------------------------------------------------------
