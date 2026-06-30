@@ -362,17 +362,26 @@ function buildSpotlight(secReg, sec, editable = false) {
           ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs('spotlight', item.id, 'title', editable)}>${esc(fields.title || '')}</a>`
           : `<span${editAttrs('spotlight', item.id, 'title', editable)}>${esc(fields.title || '')}</span>`;
 
-        // Meta: use fields.meta if present, else join date | time | location
-        let metaText = '';
+        // Meta: use fields.meta if present (hook the meta field); otherwise
+        // build from date | time | location and hook EACH sub-field so clicking
+        // edits the value actually shown (not a phantom empty `meta`).
+        const metaStyle = `margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;`;
+        let metaLine = '';
         if (fields.meta) {
-          metaText = fields.meta;
+          metaLine = `<p style="${metaStyle}"${editAttrs('spotlight', item.id, 'meta', editable)}>${esc(fields.meta)}</p>`;
         } else {
-          const parts = [fields.date, fields.time, fields.location].filter(Boolean);
-          metaText = parts.join(' | ');
+          const subParts = [
+            fields.date ? `<span${editAttrs('spotlight', item.id, 'date', editable)}>${esc(fields.date)}</span>` : '',
+            fields.time ? `<span${editAttrs('spotlight', item.id, 'time', editable)}>${esc(fields.time)}</span>` : '',
+            fields.location ? `<span${editAttrs('spotlight', item.id, 'location', editable)}>${esc(fields.location)}</span>` : '',
+          ].filter(Boolean);
+          if (subParts.length) {
+            // editable: clickable spans; export: plain joined text (no spans/hooks)
+            const plain = [fields.date, fields.time, fields.location].filter(Boolean).map(esc).join(' | ');
+            const content = editable ? subParts.join(' | ') : plain;
+            metaLine = `<p style="${metaStyle}">${content}</p>`;
+          }
         }
-        const metaLine = metaText
-          ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs('spotlight', item.id, 'meta', editable)}>${esc(metaText)}</p>`
-          : '';
 
         const summaryLine = fields.summary
           ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('spotlight', item.id, 'summary', editable)}>${esc(fields.summary)}</p>`
