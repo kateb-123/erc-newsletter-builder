@@ -272,8 +272,9 @@ function buildGroupedDigest(secReg, sec) {
 function buildHappyHour(sec) {
   if (!sec.enabled || !sec.items.length) return '';
 
-  let rows = sectionHeader('happyhour', 'ERC Happy Hour');
-  rows += eyebrow('ERC Happy Hour', true);
+  // Lighter eyebrow group (no maroon file-tab section header) — Happy Hour
+  // is a small labeled block, not a first-class section.
+  let rows = eyebrow('ERC Happy Hour', true);
 
   rows += `<tr><td style="padding: 7px 24px 18px 40px;">
 <p style="margin:0 0 9px; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">Join us for our monthly happy hour &#8212; no RSVP required, all are welcome.</p>
@@ -334,6 +335,9 @@ function buildHeader(issue) {
   // Only sections that are enabled AND have items appear — same guard the builders use.
   const navLinks = SECTION_REGISTRY
     .filter(secReg => {
+      // Happy Hour renders as a lighter eyebrow group, not a file-tab
+      // section, so it is not a jump-nav target.
+      if (secReg.key === 'happyhour') return false;
       const sec = issue.sections[secReg.key];
       return sec && sec.enabled && sec.items.length > 0;
     })
