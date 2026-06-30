@@ -404,82 +404,130 @@ function renderTriage() {
 
     sectionsList.appendChild(row);
 
-    // Events: featured + reorder controls
-    if (reg.key === 'events' && items.length > 0) {
-      const eventsContainer = document.createElement('div');
-      eventsContainer.className = 'triage-events-list';
+    // Events and Spotlight: grouped display with featured checkbox (events) or plain grouped list (spotlight)
+    const isGroupedSection = (reg.key === 'events' || reg.key === 'spotlight') && items.length > 0 && reg.groups && reg.groups.length > 0;
+    if (isGroupedSection) {
+      const sectionContainer = document.createElement('div');
+      sectionContainer.className = 'triage-grouped-section';
 
-      const renderEventsList = () => {
-        eventsContainer.innerHTML = '';
-        const currentItems = (issue && issue.sections && issue.sections.events && issue.sections.events.items) || [];
-        currentItems.forEach((item, idx) => {
-          const evRow = document.createElement('div');
-          evRow.className = 'triage-event-row';
+      /**
+       * Render all groups for this section into sectionContainer.
+       * For 'events': shows featured checkbox + reorder buttons per item.
+       * For 'spotlight': shows reorder buttons per item, no featured control.
+       */
+      const renderGroupedSection = () => {
+        sectionContainer.innerHTML = '';
+        const secItems = (issue && issue.sections && issue.sections[reg.key] && issue.sections[reg.key].items) || [];
 
-          // Star / featured radio-like button
-          const starBtn = document.createElement('button');
-          starBtn.type = 'button';
-          starBtn.className = 'triage-star-btn' + (item.featured ? ' triage-star-btn--active' : '');
-          starBtn.setAttribute('aria-label', item.featured ? 'Remove featured' : 'Set as featured event');
-          starBtn.setAttribute('aria-pressed', String(!!item.featured));
-          starBtn.textContent = '⭐';
-          starBtn.addEventListener('click', () => {
-            const evItems = issue.sections.events.items;
-            const wasFeatured = item.featured;
-            // Toggle: if already featured, un-feature it; otherwise feature it exclusively
-            evItems.forEach((ev) => { ev.featured = false; });
-            if (!wasFeatured) item.featured = true;
-            renderEventsList();
-            scheduleSave();
-          });
+        for (const grp of reg.groups) {
+          // Items belonging to this group (in their current order)
+          const grpItems = secItems.filter((it) => it.group === grp.key);
+          if (grpItems.length === 0) continue;
 
-          // Title (user-derived — use textContent)
-          const titleSpan = document.createElement('span');
-          titleSpan.className = 'triage-event-title';
-          titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
+          // Group label
+          const grpLabel = document.createElement('div');
+          grpLabel.className = 'triage-group-label';
+          grpLabel.textContent = grp.label; // registry constant — safe as textContent
+          sectionContainer.appendChild(grpLabel);
 
-          // Up button
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button';
-          upBtn.className = 'triage-reorder-btn';
-          upBtn.textContent = '↑';
-          upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = idx === 0;
-          upBtn.addEventListener('click', () => {
-            const evItems = issue.sections.events.items;
-            if (idx > 0) {
-              [evItems[idx - 1], evItems[idx]] = [evItems[idx], evItems[idx - 1]];
-              renderEventsList();
-              scheduleSave();
+          for (const item of grpItems) {
+            // Compute index within the full section items array (for reorder swaps)
+            const secIdx = secItems.indexOf(item);
+            // Compute position within this group (for position label + button disable)
+            const grpIdx = grpItems.indexOf(item);
+
+            const evRow = document.createElement('div');
+            evRow.className = 'triage-event-row';
+
+            // Title (user-derived — textContent only)
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'triage-event-title';
+            titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
+
+            // Position indicator (e.g. "2 of 5")
+            const posSpan = document.createElement('span');
+            posSpan.className = 'triage-event-pos';
+            posSpan.textContent = `${grpIdx + 1} of ${grpItems.length}`;
+
+            // Up button
+            const upBtn = document.createElement('button');
+            upBtn.type = 'button';
+            upBtn.className = 'triage-reorder-btn';
+            upBtn.textContent = '↑';
+            upBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" up (${grpIdx + 1} of ${grpItems.length})`);
+            upBtn.disabled = grpIdx === 0;
+            upBtn.addEventListener('click', () => {
+              const allItems = issue.sections[reg.key].items;
+              if (secIdx > 0) {
+                [allItems[secIdx - 1], allItems[secIdx]] = [allItems[secIdx], allItems[secIdx - 1]];
+                renderGroupedSection();
+                scheduleSave();
+              }
+            });
+
+            // Down button
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.className = 'triage-reorder-btn';
+            downBtn.textContent = '↓';
+            downBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" down (${grpIdx + 1} of ${grpItems.length})`);
+            downBtn.disabled = grpIdx === grpItems.length - 1;
+            downBtn.addEventListener('click', () => {
+              const allItems = issue.sections[reg.key].items;
+              if (secIdx < allItems.length - 1) {
+                [allItems[secIdx], allItems[secIdx + 1]] = [allItems[secIdx + 1], allItems[secIdx]];
+                renderGroupedSection();
+                scheduleSave();
+              }
+            });
+
+            evRow.appendChild(titleSpan);
+
+            // Featured checkbox — events section only
+            if (reg.key === 'events') {
+              const featWrapper = document.createElement('div');
+              featWrapper.className = 'triage-featured-wrapper';
+
+              const featLabel = document.createElement('label');
+              featLabel.className = 'triage-featured-label';
+
+              const featCb = document.createElement('input');
+              featCb.type = 'checkbox';
+              featCb.className = 'triage-featured-cb';
+              featCb.checked = !!item.featured;
+              featCb.addEventListener('change', () => {
+                const evItems = issue.sections.events.items;
+                const wasFeatured = item.featured;
+                // Exclusive: clear all, then set if newly checked
+                evItems.forEach((ev) => { ev.featured = false; });
+                if (!wasFeatured) item.featured = true;
+                renderGroupedSection();
+                scheduleSave();
+              });
+
+              featLabel.appendChild(featCb);
+              const featLabelText = document.createTextNode(' Featured event');
+              featLabel.appendChild(featLabelText);
+              featWrapper.appendChild(featLabel);
+
+              const featHelper = document.createElement('span');
+              featHelper.className = 'triage-featured-helper';
+              featHelper.textContent = 'Pins this event to the top under a Featured heading — choose one.';
+              featWrapper.appendChild(featHelper);
+
+              evRow.appendChild(featWrapper);
             }
-          });
 
-          // Down button
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button';
-          downBtn.className = 'triage-reorder-btn';
-          downBtn.textContent = '↓';
-          downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = idx === currentItems.length - 1;
-          downBtn.addEventListener('click', () => {
-            const evItems = issue.sections.events.items;
-            if (idx < evItems.length - 1) {
-              [evItems[idx], evItems[idx + 1]] = [evItems[idx + 1], evItems[idx]];
-              renderEventsList();
-              scheduleSave();
-            }
-          });
-
-          evRow.appendChild(starBtn);
-          evRow.appendChild(titleSpan);
-          evRow.appendChild(upBtn);
-          evRow.appendChild(downBtn);
-          eventsContainer.appendChild(evRow);
-        });
+            evRow.appendChild(posSpan);
+            evRow.appendChild(upBtn);
+            evRow.appendChild(downBtn);
+            sectionContainer.appendChild(evRow);
+          }
+        }
       };
 
-      renderEventsList();
-      sectionsList.appendChild(eventsContainer);
+      renderGroupedSection();
+      sectionsList.appendChild(sectionContainer);
     }
   }
 
