@@ -1,0 +1,152 @@
+/* ============================================================
+   ERC Newsletter Builder — App Shell Styles
+   ============================================================ */
+
+/* --- Reset & base ----------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 15px;
+  color: #202020;
+  background: #eaeaea;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- App header ------------------------------------------- */
+.app-header {
+  background: #500000;
+  color: #fff;
+  padding: 20px 32px 16px;
+}
+
+.app-header h1 {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  letter-spacing: 0.5px;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+}
+
+/* --- Step indicator nav ----------------------------------- */
+.step-nav {
+  background: #fff;
+  border-bottom: 2px solid #500000;
+  padding: 0 32px;
+}
+
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 0;
+}
+
+.step-indicator {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #9a8a8a;
+  padding: 12px 20px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: default;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.step-indicator.active {
+  color: #500000;
+  border-bottom-color: #500000;
+}
+
+/* --- Wizard body ------------------------------------------ */
+.wizard-body {
+  flex: 1;
+  padding: 32px;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wizard-step {
+  background: #fff;
+  border-radius: 6px;
+  padding: 32px 36px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.wizard-step h2 {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #500000;
+  margin: 0 0 12px;
+}
+
+.wizard-step p {
+  color: #404040;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* --- Footer nav ------------------------------------------- */
+.wizard-footer {
+  background: #fff;
+  border-top: 1px solid #ddd;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* --- Buttons ---------------------------------------------- */
+.btn {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #500000;
+  color: #fff;
+}
+
+.btn-primary:not(:disabled):hover {
+  background: #6a0000;
+}
+
+.btn-secondary {
+  background: #e8e8e8;
+  color: #404040;
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: #d8d8d8;
+}
