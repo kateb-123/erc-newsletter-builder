@@ -336,6 +336,16 @@ body {
 }
 
 /* --- Triage step ------------------------------------------ */
+.triage-summary {
+  font-size: 13px;
+  color: #404040;
+  background: #f5f3f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 9px 14px;
+  margin-bottom: 20px;
+}
+
 .triage-meta {
   display: flex;
   flex-direction: column;

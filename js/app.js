@@ -277,6 +277,27 @@ function renderTriage() {
 
   const issue = state.issue;
 
+  // ── Summary roster ───────────────────────────────────────────────────────
+  if (issue && issue.sections) {
+    const parts = [];
+    for (const reg of SECTION_REGISTRY) {
+      const secData = issue.sections[reg.key];
+      const count = (secData && secData.items) ? secData.items.length : 0;
+      if (count === 0) continue;
+      // Build a human-friendly label+count phrase
+      const label = reg.navLabel || reg.label;
+      parts.push(`${count} ${label}`);
+    }
+    const summary = document.createElement('p');
+    summary.className = 'triage-summary';
+    if (parts.length > 0) {
+      summary.textContent = 'This issue: ' + parts.join(' · ') + '.';
+    } else {
+      summary.textContent = 'No sections with content found in this file.';
+    }
+    container.appendChild(summary);
+  }
+
   // ── Meta fields ──────────────────────────────────────────────────────────
   const metaSection = document.createElement('div');
   metaSection.className = 'triage-meta';
@@ -337,11 +358,32 @@ function renderTriage() {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.className = 'triage-toggle';
-    checkbox.checked = isEnabled;
-    checkbox.addEventListener('change', () => {
-      if (secData) secData.enabled = checkbox.checked;
-      scheduleSave();
-    });
+
+    if (isEmpty) {
+      // Empty-section lock: force off + disable
+      checkbox.checked = false;
+      checkbox.disabled = true;
+      if (secData) secData.enabled = false;
+    } else {
+      checkbox.checked = isEnabled;
+      // Confirm-on-hide: ask before unchecking a populated section
+      checkbox.addEventListener('change', () => {
+        if (!checkbox.checked && items.length > 0) {
+          const label = reg.navLabel || reg.label;
+          const confirmed = window.confirm(
+            `Hide ${label}? This removes ${items.length} item${items.length === 1 ? '' : 's'} from this issue.`
+          );
+          if (!confirmed) {
+            // Restore the checked state
+            checkbox.checked = true;
+            return;
+          }
+        }
+        if (secData) secData.enabled = checkbox.checked;
+        scheduleSave();
+      });
+    }
+
     checkLabel.appendChild(checkbox);
 
     // Section name
@@ -352,11 +394,11 @@ function renderTriage() {
 
     row.appendChild(checkLabel);
 
-    // Note for empty/disabled sections
+    // Note for empty/locked sections
     if (isEmpty) {
       const note = document.createElement('span');
       note.className = 'triage-section-note';
-      note.textContent = '(empty — off)';
+      note.textContent = '(empty in your file — nothing to show)';
       row.appendChild(note);
     }
 
