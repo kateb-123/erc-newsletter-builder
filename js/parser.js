@@ -1,4 +1,4 @@
-import { sectionByAlias } from './model.js';
+import { sectionByAlias, groupByAlias } from './model.js';
 
 const KV = (text, key) => {
   const m = text.match(new RegExp('^\\s*' + key + '\\s*:\\s*(.+)$', 'im'));
@@ -29,3 +29,24 @@ export function splitSections(md) {
 }
 
 export { KV };
+
+let _idCounter = 0;
+export function _resetIds() { _idCounter = 0; } // test helper
+
+const FIELD_KEYS = ['title','authors','summary','date','time','location','source','meta'];
+
+export function parseItems(sectionKey, rawText) {
+  const blocks = rawText.split(/^###\s+/m).slice(1); // drop pre-first-### text
+  const items = [];
+  for (const b of blocks) {
+    const group = groupByAlias(sectionKey, KV(b, 'group'));
+    const featuredRaw = KV(b, 'featured');
+    const featured = /^(yes|true)$/i.test(featuredRaw) || group === 'featured';
+    const fields = {};
+    for (const k of FIELD_KEYS) { const v = KV(b, k); if (v) fields[k] = v; }
+    const url = KV(b, 'url') || KV(b, 'link_url') || KV(b, 'link');
+    if (url) fields.url = url;
+    if (Object.keys(fields).length || group) items.push({ id: 'itm_' + (++_idCounter), group, featured, fields });
+  }
+  return items;
+}
