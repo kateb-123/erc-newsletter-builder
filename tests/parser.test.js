@@ -86,3 +86,11 @@ test('parseMarkdown warns on unknown headers', () => {
   const { warnings } = parseMarkdown('## Meta\ndate: x\n## Mystery\n### Item\ntitle: y\n');
   assert.ok(warnings.some(w => /Mystery/.test(w)));
 });
+
+test('CONTENT_TEMPLATE.md parses cleanly with all sections present', () => {
+  const md = readFileSync(new URL('../CONTENT_TEMPLATE.md', import.meta.url), 'utf8');
+  const { issue, warnings } = parseMarkdown(md);
+  assert.deepEqual(warnings, []);
+  for (const key of ['research','events','opportunities','policy','headlines','happyhour'])
+    assert.ok(issue.sections[key].items.length > 0, `${key} should have items`);
+});
