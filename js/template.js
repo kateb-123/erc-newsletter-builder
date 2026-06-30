@@ -306,11 +306,43 @@ ${rows}
 </table>`;
 }
 
+// ─── Anchor-id map (must match the ids emitted by each section builder) ───────
+
+/**
+ * Returns the HTML anchor id that each section builder emits via sectionHeader().
+ * Keep in sync with buildBriefs, buildGroupedList, buildGroupedDigest, buildHappyHour.
+ */
+function anchorIdForSection(sectionKey) {
+  switch (sectionKey) {
+    case 'research':      return 'research';
+    case 'events':        return 'events';
+    case 'opportunities': return 'opportunities';
+    case 'policy':        return 'policy';
+    case 'headlines':     return 'news';
+    case 'happyhour':     return 'happyhour';
+    default:              return sectionKey;
+  }
+}
+
 // ─── Header / masthead / intro / footer ──────────────────────────────────────
 
 function buildHeader(issue) {
   const imgSrc = issue.headerImageUrl || 'https://i.ibb.co/tPqcyQw2/NEWSLETTER1.png';
   const date = issue.date || '';
+
+  // Build jump-nav dynamically from enabled sections in SECTION_REGISTRY order.
+  // Only sections that are enabled AND have items appear — same guard the builders use.
+  const navLinks = SECTION_REGISTRY
+    .filter(secReg => {
+      const sec = issue.sections[secReg.key];
+      return sec && sec.enabled && sec.items.length > 0;
+    })
+    .map(secReg => {
+      const anchor = anchorIdForSection(secReg.key);
+      return `<a href="#${anchor}" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">${esc(secReg.label)}</a>`;
+    });
+  const navHtml = navLinks.join(' &nbsp;|&nbsp; ');
+
   return `<table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 705px; margin: 0 auto; background-color: rgb(255, 255, 255);">
 <tbody>
 <tr>
@@ -326,7 +358,7 @@ function buildHeader(issue) {
 </tr>
 <tr>
 <td colspan="2" style="background-color: #f6f6f6; padding: 9px 15px;">
-<p style="text-align: center; line-height: 1.7; margin: 0px; font-family: ${FONT_BODY}; font-size: 14px; color: #202020;"><a href="#research" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">ERC Research</a> &nbsp;|&nbsp; <a href="#spotlight" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">Spotlight</a> &nbsp;|&nbsp; <a href="#events" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">Events</a> &nbsp;|&nbsp; <a href="#opportunities" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">Opportunities</a> &nbsp;|&nbsp; <a href="#policy" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">Policy Research</a> &nbsp;|&nbsp; <a href="#news" style="color: rgb(83, 83, 83); text-decoration: none; font-weight: 700;">Headlines</a></p>
+<p style="text-align: center; line-height: 1.7; margin: 0px; font-family: ${FONT_BODY}; font-size: 14px; color: #202020;">${navHtml}</p>
 </td>
 </tr>
 <tr>

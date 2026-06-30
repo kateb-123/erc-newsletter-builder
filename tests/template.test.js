@@ -32,3 +32,51 @@ test('all user text is escaped (no raw angle brackets injected)', () => {
   const html = renderNewsletter(issue);
   assert.match(html, /A &lt; B &amp; C/);
 });
+
+// ─── Regression tests (Fix 1 + Fix 2) ────────────────────────────────────────
+
+test('footer contains ERC horizontal lockup image URL', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.ok(
+    html.includes('https://i.ibb.co/JjQWyZq3/ERC-Horizontal-White-Text-narrow.png'),
+    'Expected footer ERC lockup image URL to appear in output'
+  );
+});
+
+test('eyebrow group label uses maroon color #913B3B', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.ok(
+    html.includes('#913B3B'),
+    'Expected eyebrow group label to use maroon #913B3B'
+  );
+});
+
+test('headlines render source in parenthesized format', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  // full-issue.md has a Federal headline with source "Ed Week"
+  assert.match(html, /\(Ed Week\)/, 'Expected headline source to appear wrapped in parentheses');
+});
+
+test('"See more" tail link text appears in output', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.ok(
+    html.includes('See more on the ERC website'),
+    'Expected "See more on the ERC website" tail link to appear in output'
+  );
+});
+
+test('jump-nav does NOT contain #spotlight (Fix 1 guard)', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.ok(
+    !html.includes('#spotlight'),
+    'Jump-nav must not contain a #spotlight link — no Spotlight section exists'
+  );
+});
+
+test('jump-nav contains anchor for the events section', () => {
+  const html = renderNewsletter(issueOf('full-issue.md'));
+  assert.ok(
+    html.includes('href="#events"'),
+    'Jump-nav must contain href="#events" for the enabled events section'
+  );
+});
