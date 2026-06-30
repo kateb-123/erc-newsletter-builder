@@ -546,137 +546,21 @@ body {
   cursor: not-allowed;
 }
 
-/* --- Preview step ----------------------------------------- */
-.preview-iframe {
-  display: block;
-  width: 100%;
-  height: 700px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-top: 16px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-}
-
-/* --- Edit step -------------------------------------------- */
+/* --- Edit step ("Preview & Edit") ------------------------- */
 .edit-empty-msg {
   color: #9a8a8a;
   font-style: italic;
   margin-top: 16px;
 }
 
-/* Two-pane layout: fields left, live preview right */
-.edit-layout {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 24px;
-  margin-top: 16px;
-  align-items: start;
-}
-
-.edit-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-height: 680px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.edit-fields::-webkit-scrollbar {
-  width: 6px;
-}
-
-.edit-fields::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-.edit-section-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.edit-section-heading {
-  font-family: Verdana, Geneva, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: #913B3B;
-  text-transform: uppercase;
-  letter-spacing: 1.1px;
-  margin: 0;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #ede8e8;
-}
-
-.edit-item-block {
-  padding: 10px 12px;
-  background: #faf8f7;
-  border-radius: 4px;
-  border: 1px solid #ede8e8;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.edit-item-label {
-  font-size: 12px;
-  font-weight: 700;
-  font-family: Verdana, Geneva, sans-serif;
-  color: #5C5C5C;
-  margin: 0 0 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.edit-field-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.edit-field-label {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: Verdana, Geneva, sans-serif;
-  color: #404040;
-}
-
-.edit-field-input,
-.edit-field-textarea {
-  padding: 5px 8px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
-  font-size: 13px;
-  color: #202020;
-  width: 100%;
-  resize: vertical;
-}
-
-.edit-field-input:focus,
-.edit-field-textarea:focus {
-  outline: none;
-  border-color: #913B3B;
-  box-shadow: 0 0 0 2px rgba(145,59,59,0.2);
-}
-
-.edit-preview-pane {
-  position: sticky;
-  top: 16px;
-}
-
-.edit-live-iframe {
+/* Large full-width editable preview iframe */
+.edit-preview-iframe {
   display: block;
   width: 100%;
-  height: 680px;
+  height: 760px;
   border: 1px solid #ddd;
   border-radius: 6px;
+  margin-top: 16px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }

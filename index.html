@@ -9,16 +9,15 @@
 <body>
   <header class="app-header">
     <h1>ERC Newsletter Builder</h1>
-    <p class="app-subtitle">Build and export the Education Research Center newsletter in 5 steps.</p>
+    <p class="app-subtitle">Build and export the Education Research Center newsletter in 4 steps.</p>
   </header>
 
   <nav class="step-nav" aria-label="Wizard steps">
     <ol class="step-list">
       <li class="step-indicator" data-nav-step="upload">1. Upload</li>
       <li class="step-indicator" data-nav-step="triage">2. Triage</li>
-      <li class="step-indicator" data-nav-step="preview">3. Preview</li>
-      <li class="step-indicator" data-nav-step="edit">4. Edit</li>
-      <li class="step-indicator" data-nav-step="export">5. Export</li>
+      <li class="step-indicator" data-nav-step="edit">3. Preview &amp; Edit</li>
+      <li class="step-indicator" data-nav-step="export">4. Export</li>
     </ol>
   </nav>
 
@@ -45,18 +44,13 @@
       <p>Review and organize the parsed sections. Reorder, enable, or disable each section before generating the final newsletter.</p>
     </section>
 
-    <section data-step="preview" class="wizard-step" hidden>
-      <h2>Step 3: Preview</h2>
-      <p>See a live preview of the rendered newsletter HTML. Check layout and content before making edits.</p>
-    </section>
-
     <section data-step="edit" class="wizard-step" hidden>
-      <h2>Step 4: Edit</h2>
-      <p>Make fine-grained edits to individual sections, items, and metadata before exporting.</p>
+      <h2>Step 3: Preview &amp; Edit</h2>
+      <p>Review the newsletter and click any field to edit it inline.</p>
     </section>
 
     <section data-step="export" class="wizard-step" hidden>
-      <h2>Step 5: Export</h2>
+      <h2>Step 4: Export</h2>
       <p>Copy the finished HTML to clipboard or download it as a file, ready to paste into Outlook Web App.</p>
     </section>
   </main>

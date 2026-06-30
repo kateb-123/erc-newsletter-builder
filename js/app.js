@@ -16,7 +16,7 @@ import { saveState, loadState, clearState } from './state.js';
 // State
 // ---------------------------------------------------------------------------
 
-const STEPS = ['upload', 'triage', 'preview', 'edit', 'export'];
+const STEPS = ['upload', 'triage', 'edit', 'export'];
 
 const state = {
   /** @type {object|null} Parsed newsletter issue model */
@@ -105,7 +105,6 @@ function goTo(step) {
 
   // Step-specific render hooks
   if (step === 'triage') renderTriage();
-  if (step === 'preview') renderPreview();
   if (step === 'edit') renderEdit();
   if (step === 'export') renderExport();
 }
@@ -535,58 +534,12 @@ function renderTriage() {
 }
 
 // ---------------------------------------------------------------------------
-// Preview step
+// Edit step ("Preview & Edit")
 // ---------------------------------------------------------------------------
 
 /**
- * Render the preview step: newsletter HTML in a sandboxed iframe.
- * Called each time the wizard navigates to 'preview'.
- */
-function renderPreview() {
-  const container = document.querySelector('[data-step="preview"]');
-  if (!container) return;
-
-  const h2 = container.querySelector('h2');
-  container.innerHTML = '';
-  if (h2) container.appendChild(h2);
-
-  if (!state.issue) {
-    const msg = document.createElement('p');
-    msg.className = 'edit-empty-msg';
-    msg.textContent = 'No issue loaded. Go back to Upload and choose a file.';
-    container.appendChild(msg);
-    return;
-  }
-
-  const iframe = document.createElement('iframe');
-  iframe.className = 'preview-iframe';
-  iframe.setAttribute('title', 'Newsletter preview');
-  iframe.srcdoc = renderNewsletter(state.issue);
-  container.appendChild(iframe);
-}
-
-// ---------------------------------------------------------------------------
-// Edit step
-// ---------------------------------------------------------------------------
-
-/** Long-text fields that get a textarea */
-const TEXTAREA_FIELDS = new Set(['summary', 'intro', 'body']);
-
-/** Fields to surface in the edit UI (all known item fields) */
-const ALL_ITEM_FIELDS = ['title', 'authors', 'date', 'time', 'location', 'source', 'meta', 'summary', 'url'];
-
-/**
- * Build (or refresh) the live-preview iframe inside the edit step.
- * @param {HTMLIFrameElement} iframe
- */
-function refreshEditPreview(iframe) {
-  if (!state.issue) return;
-  iframe.srcdoc = renderNewsletter(state.issue);
-}
-
-/**
- * Render the edit step: intro textarea + per-section/per-item field inputs
- * beside a live preview iframe that updates on every keystroke.
+ * Render the edit step: large full-width editable-mode preview iframe.
+ * The editable HTML has data-edit-* hooks for click-to-edit (wired in Task 9).
  * Called each time the wizard navigates to 'edit'.
  */
 function renderEdit() {
@@ -605,118 +558,11 @@ function renderEdit() {
     return;
   }
 
-  // Two-pane layout: fields on left, live iframe on right
-  const layout = document.createElement('div');
-  layout.className = 'edit-layout';
-
-  // ── Left pane: editable fields ────────────────────────────────────────────
-  const fields = document.createElement('div');
-  fields.className = 'edit-fields';
-
-  // Live preview iframe (declared here so input handlers can refresh it)
-  const liveIframe = document.createElement('iframe');
-  liveIframe.className = 'edit-live-iframe';
-  liveIframe.setAttribute('title', 'Live newsletter preview');
-  liveIframe.srcdoc = renderNewsletter(state.issue);
-
-  // Helper: create a labeled control and wire its input event
-  function makeControl(labelText, value, isLong, onInput) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'edit-field-wrapper';
-
-    const lbl = document.createElement('label');
-    lbl.className = 'edit-field-label';
-    lbl.textContent = labelText;
-
-    let ctrl;
-    if (isLong) {
-      ctrl = document.createElement('textarea');
-      ctrl.className = 'edit-field-textarea';
-      ctrl.rows = 3;
-    } else {
-      ctrl = document.createElement('input');
-      ctrl.type = 'text';
-      ctrl.className = 'edit-field-input';
-    }
-    ctrl.value = value || '';
-    ctrl.addEventListener('input', () => {
-      onInput(ctrl.value);
-      refreshEditPreview(liveIframe);
-      scheduleSave();
-    });
-
-    lbl.appendChild(ctrl);
-    wrapper.appendChild(lbl);
-    return wrapper;
-  }
-
-  // Intro textarea
-  const introSection = document.createElement('div');
-  introSection.className = 'edit-section-group';
-  const introHeading = document.createElement('h3');
-  introHeading.className = 'edit-section-heading';
-  introHeading.textContent = 'Intro';
-  introSection.appendChild(introHeading);
-  introSection.appendChild(
-    makeControl('Intro text', state.issue.intro, true, (v) => { state.issue.intro = v; })
-  );
-  fields.appendChild(introSection);
-
-  // Per-section groups
-  for (const reg of SECTION_REGISTRY) {
-    const secData = state.issue.sections && state.issue.sections[reg.key];
-    if (!secData || !secData.enabled || !secData.items || secData.items.length === 0) continue;
-
-    const secGroup = document.createElement('div');
-    secGroup.className = 'edit-section-group';
-
-    const secHeading = document.createElement('h3');
-    secHeading.className = 'edit-section-heading';
-    secHeading.textContent = reg.label;
-    secGroup.appendChild(secHeading);
-
-    secData.items.forEach((item, itemIdx) => {
-      if (!item.fields) return;
-
-      // Only show populated fields
-      const populatedFields = ALL_ITEM_FIELDS.filter(
-        (f) => item.fields[f] !== undefined && item.fields[f] !== null && item.fields[f] !== ''
-      );
-      if (populatedFields.length === 0) return;
-
-      const itemBlock = document.createElement('div');
-      itemBlock.className = 'edit-item-block';
-
-      // Item label (use title as identifier, fallback to index)
-      const itemLabel = document.createElement('p');
-      itemLabel.className = 'edit-item-label';
-      itemLabel.textContent = item.fields.title || `Item ${itemIdx + 1}`;
-      itemBlock.appendChild(itemLabel);
-
-      populatedFields.forEach((fieldKey) => {
-        const isLong = TEXTAREA_FIELDS.has(fieldKey);
-        const displayName = fieldKey.charAt(0).toUpperCase() + fieldKey.slice(1);
-        itemBlock.appendChild(
-          makeControl(displayName, item.fields[fieldKey], isLong, (v) => {
-            state.issue.sections[reg.key].items[itemIdx].fields[fieldKey] = v;
-          })
-        );
-      });
-
-      secGroup.appendChild(itemBlock);
-    });
-
-    fields.appendChild(secGroup);
-  }
-
-  // ── Right pane: live iframe ────────────────────────────────────────────────
-  const previewPane = document.createElement('div');
-  previewPane.className = 'edit-preview-pane';
-  previewPane.appendChild(liveIframe);
-
-  layout.appendChild(fields);
-  layout.appendChild(previewPane);
-  container.appendChild(layout);
+  const iframe = document.createElement('iframe');
+  iframe.className = 'edit-preview-iframe';
+  iframe.setAttribute('title', 'Newsletter preview — click fields to edit');
+  iframe.srcdoc = renderNewsletter(state.issue, { editable: true });
+  container.appendChild(iframe);
 }
 
 // ---------------------------------------------------------------------------
@@ -989,7 +835,6 @@ function maybeShowRestoreBanner() {
 
 window.__state = state;
 window.__renderTriage = renderTriage;
-window.__renderPreview = renderPreview;
 window.__renderEdit = renderEdit;
 window.__renderExport = renderExport;
 window.__copyHtml = copyHtml;
