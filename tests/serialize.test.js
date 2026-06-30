@@ -22,3 +22,12 @@ test('issueToMarkdown round-trips through parseMarkdown', () => {
   }
   assert.equal(b.sections.events.items.some(i => i.featured), a.sections.events.items.some(i => i.featured));
 });
+
+test('spotlight survives the markdown round-trip', () => {
+  _resetIds();
+  const a = parseMarkdown(readFileSync(new URL('../fixtures/full-issue.md', import.meta.url),'utf8')).issue;
+  const b = parseMarkdown(issueToMarkdown(a)).issue;
+  assert.equal(b.sections.spotlight.enabled, a.sections.spotlight.enabled);
+  assert.equal(b.sections.spotlight.items.length, a.sections.spotlight.items.length);
+  assert.deepEqual(b.sections.spotlight.items.map(i=>i.group), a.sections.spotlight.items.map(i=>i.group));
+});
