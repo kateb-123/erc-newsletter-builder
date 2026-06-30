@@ -21,6 +21,30 @@ authors: Maria Lopez, Chris Park, Dana Wu
 summary: Can high-dosage tutoring close early math gaps? A randomized trial across 20 Texas elementary schools shows a 0.4 SD gain for students receiving three weekly sessions. Policymakers should consider scaling this model through existing after-school funding streams.
 url: https://erc.tamu.edu/briefs/math-achievement
 
+## ERC Spotlight
+
+### Spotlight Item
+group: Programs & Opportunities
+title: ERC Graduate Student Ambassadors
+meta: Applications open through July 1, 2026 | Graduate students
+summary: Ambassador cohort members represent ERC at campus events and support research dissemination. Apply to join the 2026–27 cohort.
+url: https://erc.tamu.edu/spotlight/ambassadors
+
+### Spotlight Item
+group: Events
+title: ERC In the Works: Maria Lopez
+date: June 24, 2026
+time: 12:00 PM CT
+location: EDCT 318
+url: https://erc.tamu.edu/events/in-the-works-lopez
+
+### Spotlight Item
+group: ERC Happy Hour
+title: ERC Happy Hour
+date: Wed, June 25
+time: 5:00 PM
+location: Ice's Red House
+
 ## Upcoming Events
 
 ### Event
@@ -114,10 +138,3 @@ source: Texas Tribune
 date: June 10, 2026
 url: https://texastribune.org/tea-literacy-pilot
 
-## ERC Happy Hour
-
-### Happy Hour
-title: ERC Happy Hour
-date: Wed, June 25
-time: 5:00 PM
-location: Ice's Red House

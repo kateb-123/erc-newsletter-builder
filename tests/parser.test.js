@@ -78,7 +78,7 @@ test('parseMarkdown enables only sections with content', () => {
   const { issue, warnings } = parseMarkdown(md);
   assert.equal(issue.sections.events.enabled, true);
   assert.ok(issue.sections.events.items.length > 0);
-  assert.equal(issue.sections.happyhour.enabled, false); // absent in sparse fixture
+  assert.equal(issue.sections.spotlight.enabled, false); // absent in sparse fixture
   assert.equal(issue.date, 'June 16, 2026');
 });
 
@@ -87,10 +87,21 @@ test('parseMarkdown warns on unknown headers', () => {
   assert.ok(warnings.some(w => /Mystery/.test(w)));
 });
 
-test('CONTENT_TEMPLATE.md parses cleanly with all sections present', () => {
+test('CONTENT_TEMPLATE.md parses cleanly with spotlight present', () => {
   const md = readFileSync(new URL('../CONTENT_TEMPLATE.md', import.meta.url), 'utf8');
   const { issue, warnings } = parseMarkdown(md);
   assert.deepEqual(warnings, []);
-  for (const key of ['research','events','opportunities','policy','headlines','happyhour'])
+  assert.ok(issue.sections.spotlight.items.length > 0, 'spotlight should have items');
+  for (const key of ['research','spotlight','events','opportunities','policy','headlines'])
     assert.ok(issue.sections[key].items.length > 0, `${key} should have items`);
+});
+
+test('full-issue fixture puts Happy Hour inside spotlight', () => {
+  _resetIds();
+  const md = readFileSync(new URL('../fixtures/full-issue.md', import.meta.url), 'utf8');
+  const { issue } = parseMarkdown(md);
+  const groups = issue.sections.spotlight.items.map(i => i.group);
+  assert.ok(groups.includes('programs'));
+  assert.ok(groups.includes('events'));
+  assert.ok(groups.includes('happyhour'));
 });

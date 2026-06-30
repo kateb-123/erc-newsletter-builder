@@ -14,6 +14,7 @@ HOW TO USE THIS FILE
 
 3. group: tells the builder which sub-group an item belongs to.
    Valid group: values per section:
+     ERC Spotlight      → Programs & Opportunities | Events | ERC Happy Hour
      Upcoming Events    → Featured | Texas A&M | Online & Off-Campus
      Opportunities      → Funding & Grants | Fellowships & Training | Calls for Proposals | Miscellaneous
      New Education Policy Research → Working Papers | Peer-Reviewed | Miscellaneous
@@ -54,6 +55,31 @@ title: [Full title of the second research brief]
 authors: [First Last, First Last & First Last]
 summary: [Hook question. Key finding with numbers. Implication.]
 url: https://[link-to-pdf-or-abstract]
+
+## ERC Spotlight
+<!-- add/remove blocks — one ### per item; group must be Programs & Opportunities, Events, or ERC Happy Hour -->
+
+### Spotlight Item
+group: Programs & Opportunities
+title: [Program or opportunity name — e.g. "Summer Graduate Research Program"]
+meta: [Key detail — e.g. deadline, eligibility]
+summary: [1–2 sentence description of what participants do and who should apply.]
+url: https://[details-or-application-link]
+
+### Spotlight Item
+group: Events
+title: [ERC-hosted event name — e.g. "ERC In the Works: Researcher Name"]
+date: [Month DD, YYYY]
+time: [H:MM AM/PM CT]
+location: [Building Room or Zoom link description]
+url: https://[details-or-RSVP-link]
+
+### Spotlight Item
+group: ERC Happy Hour
+title: ERC Happy Hour
+date: [Month DD, YYYY]
+time: [H:MM PM CT]
+location: [Venue name]
 
 ## Upcoming Events
 <!-- add/remove blocks — one ### per event; mark exactly ONE with featured: yes -->
@@ -147,11 +173,3 @@ title: [Headline title]
 source: [Publication name]
 url: https://[article-link]
 
-## ERC Happy Hour
-<!-- add/remove blocks — one ### per upcoming happy hour date -->
-
-### Happy Hour
-title: ERC Happy Hour
-date: [Month DD, YYYY]
-time: [H:MM PM CT]
-location: [Venue name and address]
