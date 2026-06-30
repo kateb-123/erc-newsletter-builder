@@ -11,6 +11,7 @@ import { SECTION_REGISTRY } from './model.js';
 import { renderNewsletter } from './template.js';
 import { issueToMarkdown } from './serialize.js';
 import { saveState, loadState, clearState } from './state.js';
+import { getField, setField } from './editpath.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -21,6 +22,8 @@ const STEPS = ['upload', 'triage', 'edit', 'export'];
 const state = {
   /** @type {object|null} Parsed newsletter issue model */
   issue: null,
+  /** @type {object|null} Deep-clone of issue at parse/restore time — used by "Revert to original" */
+  baseline: null,
   /** @type {string} Current wizard step key */
   step: 'upload',
 };
@@ -190,6 +193,7 @@ function handleFile(file) {
     try {
       const { issue, warnings } = parseMarkdown(text);
       state.issue = issue;
+      state.baseline = structuredClone(issue);
       scheduleSave();
 
       if (warnings && warnings.length > 0) {
@@ -537,14 +541,187 @@ function renderTriage() {
 // Edit step ("Preview & Edit")
 // ---------------------------------------------------------------------------
 
+/** CSS injected into the editable iframe to show hover affordance. */
+const EDIT_HOVER_CSS = `
+[data-edit-field] {
+  cursor: pointer;
+  border-radius: 2px;
+  transition: outline 0.1s;
+}
+[data-edit-field]:hover {
+  outline: 2px solid #913B3B;
+  outline-offset: 2px;
+}
+`;
+
+/**
+ * Active editor reference. Kept so we can close the previous panel
+ * when the user clicks a different field.
+ * @type {{ panel: HTMLElement, ref: object }|null}
+ */
+let activeEditor = null;
+
+/**
+ * Re-render the editable iframe (after an edit) and re-attach listeners.
+ * @param {HTMLIFrameElement} iframe
+ */
+function refreshEditIframe(iframe) {
+  // Re-setting srcdoc triggers the 'load' event, which re-attaches the listener.
+  iframe.srcdoc = renderNewsletter(state.issue, { editable: true });
+}
+
+/**
+ * Wire up the click-to-edit listener and hover CSS in the iframe's contentDocument.
+ * Called on every iframe 'load' event (re-fires on each srcdoc set).
+ * @param {HTMLIFrameElement} iframe
+ * @param {HTMLElement} editStepContainer
+ */
+function wireIframeEditing(iframe, editStepContainer) {
+  const doc = iframe.contentDocument;
+  if (!doc) return;
+
+  // Inject hover affordance CSS
+  const style = doc.createElement('style');
+  style.textContent = EDIT_HOVER_CSS;
+  (doc.head || doc.documentElement).appendChild(style);
+
+  // Click listener — find nearest element with data-edit-field
+  doc.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-edit-field]');
+    if (!target) return;
+
+    // Prevent link navigation from firing
+    if (e.target.closest('a')) {
+      e.preventDefault();
+    }
+
+    const { editSection: section, editItem: item, editField: field } = target.dataset;
+    if (!field) return;
+
+    openFieldEditor({ section, item, field }, iframe, editStepContainer);
+  });
+}
+
+/**
+ * Open the focused editor panel for a specific field.
+ * Replaces any currently-open editor.
+ * @param {{ section: string, item?: string, field: string }} ref
+ * @param {HTMLIFrameElement} iframe
+ * @param {HTMLElement} container - the edit step container (parent page)
+ */
+function openFieldEditor(ref, iframe, container) {
+  // Close any previous editor
+  closeFieldEditor();
+
+  const currentValue = getField(state.issue, ref) ?? '';
+  const isLong = ref.field === 'summary' || ref.field === 'intro';
+
+  const panel = document.createElement('div');
+  panel.className = 'field-editor-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', `Edit ${ref.field}`);
+
+  // Header row
+  const header = document.createElement('div');
+  header.className = 'field-editor-header';
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'field-editor-label';
+  // Build a human-readable label: "spotlight › date", "research › title", etc.
+  const labelText = ref.item
+    ? `${ref.section} › ${ref.field}`
+    : ref.field;
+  labelEl.textContent = labelText;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'field-editor-close';
+  closeBtn.textContent = '✕';
+  closeBtn.setAttribute('aria-label', 'Close editor');
+  closeBtn.addEventListener('click', closeFieldEditor);
+
+  header.appendChild(labelEl);
+  header.appendChild(closeBtn);
+  panel.appendChild(header);
+
+  // Input element (textarea for long fields, input for short)
+  let inputEl;
+  if (isLong) {
+    inputEl = document.createElement('textarea');
+    inputEl.className = 'field-editor-textarea';
+    inputEl.rows = 5;
+  } else {
+    inputEl = document.createElement('input');
+    inputEl.type = 'text';
+    inputEl.className = 'field-editor-input';
+  }
+  // Use .value (not innerHTML) — never put user text in HTML
+  inputEl.value = currentValue;
+
+  // Debounce the iframe re-render so typing doesn't reset its scroll on every
+  // keystroke (state + autosave still update immediately).
+  const debouncedPreview = debounce(() => refreshEditIframe(iframe), 350);
+
+  inputEl.addEventListener('input', () => {
+    setField(state.issue, ref, inputEl.value);
+    scheduleSave();
+    debouncedPreview();
+  });
+
+  panel.appendChild(inputEl);
+
+  // Action row
+  const actions = document.createElement('div');
+  actions.className = 'field-editor-actions';
+
+  const revertBtn = document.createElement('button');
+  revertBtn.type = 'button';
+  revertBtn.className = 'btn btn-secondary field-editor-revert-btn';
+  revertBtn.textContent = 'Revert to original';
+  revertBtn.addEventListener('click', () => {
+    const originalValue = getField(state.baseline, ref) ?? '';
+    inputEl.value = originalValue;
+    setField(state.issue, ref, originalValue);
+    scheduleSave();
+    refreshEditIframe(iframe);
+  });
+
+  const doneBtn = document.createElement('button');
+  doneBtn.type = 'button';
+  doneBtn.className = 'btn btn-primary field-editor-done-btn';
+  doneBtn.textContent = 'Done';
+  doneBtn.addEventListener('click', closeFieldEditor);
+
+  actions.appendChild(revertBtn);
+  actions.appendChild(doneBtn);
+  panel.appendChild(actions);
+
+  container.appendChild(panel);
+  activeEditor = { panel, ref };
+
+  // Focus the input after it's in the DOM
+  requestAnimationFrame(() => inputEl.focus());
+}
+
+/** Remove the active editor panel if one exists. */
+function closeFieldEditor() {
+  if (activeEditor) {
+    activeEditor.panel.remove();
+    activeEditor = null;
+  }
+}
+
 /**
  * Render the edit step: large full-width editable-mode preview iframe.
- * The editable HTML has data-edit-* hooks for click-to-edit (wired in Task 9).
+ * The editable HTML has data-edit-* hooks for click-to-edit.
  * Called each time the wizard navigates to 'edit'.
  */
 function renderEdit() {
   const container = document.querySelector('[data-step="edit"]');
   if (!container) return;
+
+  // Close any lingering editor from a previous visit
+  closeFieldEditor();
 
   const h2 = container.querySelector('h2');
   container.innerHTML = '';
@@ -561,6 +738,12 @@ function renderEdit() {
   const iframe = document.createElement('iframe');
   iframe.className = 'edit-preview-iframe';
   iframe.setAttribute('title', 'Newsletter preview — click fields to edit');
+
+  // Wire click-to-edit on every load (fires on each srcdoc set)
+  iframe.addEventListener('load', () => {
+    wireIframeEditing(iframe, container);
+  });
+
   iframe.srcdoc = renderNewsletter(state.issue, { editable: true });
   container.appendChild(iframe);
 }
@@ -811,6 +994,7 @@ function maybeShowRestoreBanner() {
   restoreBtn.textContent = 'Restore';
   restoreBtn.addEventListener('click', () => {
     state.issue = saved;
+    state.baseline = structuredClone(saved);
     banner.remove();
     goTo('triage');
   });

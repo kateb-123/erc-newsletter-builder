@@ -330,9 +330,24 @@ function buildSpotlight(secReg, sec, editable = false) {
         const bottomPad = isLast ? '0' : '7px';
         const dateParts = [fields.date, fields.time, fields.location].filter(Boolean);
         const dateText = dateParts.length > 1 ? dateParts.join(' | ') : (fields.date || fields.title || '');
+        // Build the bullet text cell with optional editable attributes on each sub-field
+        const dateSpan = fields.date
+          ? `<span${editAttrs('spotlight', item.id, 'date', editable)}>${esc(fields.date)}</span>`
+          : '';
+        const timeSpan = fields.time
+          ? `<span${editAttrs('spotlight', item.id, 'time', editable)}>${esc(fields.time)}</span>`
+          : '';
+        const locationSpan = fields.location
+          ? `<span${editAttrs('spotlight', item.id, 'location', editable)}>${esc(fields.location)}</span>`
+          : '';
+        // When editable, render individual spans so each sub-field is clickable;
+        // when not editable, render the plain joined dateText (safe for export).
+        const bulletContent = editable
+          ? [dateSpan, timeSpan, locationSpan].filter(Boolean).join(' | ')
+          : esc(dateText);
         rows += `<tr>
 <td style="vertical-align:top; width:14px; padding:0 8px ${bottomPad} 0;"><span style="font-family:${FONT_BODY}; font-size:14px; line-height:1.4; color:#404040;">&#8226;</span></td>
-<td style="vertical-align:top; padding:0 0 ${bottomPad} 0;"><p style="margin:0; line-height:1.4; font-family:${FONT_BODY}; font-size:14px; color:#404040;">${esc(dateText)}</p></td>
+<td style="vertical-align:top; padding:0 0 ${bottomPad} 0;"><p style="margin:0; line-height:1.4; font-family:${FONT_BODY}; font-size:14px; color:#404040;">${bulletContent}</p></td>
 </tr>`;
       });
 
