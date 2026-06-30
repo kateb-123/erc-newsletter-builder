@@ -1,4 +1,4 @@
-import { sectionByAlias, groupByAlias } from './model.js';
+import { sectionByAlias, groupByAlias, createEmptyIssue } from './model.js';
 
 const KV = (text, key) => {
   const m = text.match(new RegExp('^\\s*' + key + '\\s*:\\s*(.+)$', 'im'));
@@ -49,4 +49,18 @@ export function parseItems(sectionKey, rawText) {
     if (Object.keys(fields).length || group) items.push({ id: 'itm_' + (++_idCounter), group, featured, fields });
   }
   return items;
+}
+
+export function parseMarkdown(md) {
+  const { meta, blocks } = splitSections(md);
+  const issue = createEmptyIssue();
+  issue.date = meta.date; issue.headerImageUrl = meta.headerImageUrl; issue.intro = meta.intro;
+  const warnings = [];
+  for (const b of blocks) {
+    if (!b.sectionKey) { warnings.push(`Couldn't place section: ${b.unknownHeader}`); continue; }
+    const items = parseItems(b.sectionKey, b.rawText);
+    issue.sections[b.sectionKey].items = items;
+    issue.sections[b.sectionKey].enabled = items.length > 0;
+  }
+  return { issue, warnings };
 }

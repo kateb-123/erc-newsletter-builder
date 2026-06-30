@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { splitSections, parseItems, _resetIds } from '../js/parser.js';
+import { splitSections, parseItems, parseMarkdown, _resetIds } from '../js/parser.js';
+import { readFileSync } from 'node:fs';
 
 const md = `# ERC Newsletter
 ## Meta
@@ -69,4 +70,19 @@ link: https://x.com/a
 `);
   assert.equal(items[0].fields.url, 'https://x.com/a');
   assert.equal(items[0].fields.source, 'EdWeek');
+});
+
+test('parseMarkdown enables only sections with content', () => {
+  _resetIds();
+  const md = readFileSync(new URL('../fixtures/sparse-issue.md', import.meta.url), 'utf8');
+  const { issue, warnings } = parseMarkdown(md);
+  assert.equal(issue.sections.events.enabled, true);
+  assert.ok(issue.sections.events.items.length > 0);
+  assert.equal(issue.sections.happyhour.enabled, false); // absent in sparse fixture
+  assert.equal(issue.date, 'June 16, 2026');
+});
+
+test('parseMarkdown warns on unknown headers', () => {
+  const { warnings } = parseMarkdown('## Meta\ndate: x\n## Mystery\n### Item\ntitle: y\n');
+  assert.ok(warnings.some(w => /Mystery/.test(w)));
 });
