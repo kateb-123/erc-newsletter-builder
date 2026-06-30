@@ -9,6 +9,7 @@
 import { parseMarkdown } from './parser.js';
 import { SECTION_REGISTRY } from './model.js';
 import { renderNewsletter } from './template.js';
+import { issueToMarkdown } from './serialize.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -81,6 +82,7 @@ function goTo(step) {
   if (step === 'triage') renderTriage();
   if (step === 'preview') renderPreview();
   if (step === 'edit') renderEdit();
+  if (step === 'export') renderExport();
 }
 
 // ---------------------------------------------------------------------------
@@ -595,6 +597,217 @@ function renderEdit() {
 }
 
 // ---------------------------------------------------------------------------
+// Export step
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert an issue date string to a URL-safe slug.
+ * Lowercases, replaces non-alphanumeric runs with `-`, trims leading/trailing dashes.
+ * Falls back to `"newsletter"` if the input is empty.
+ * @param {string} date
+ * @returns {string}
+ */
+function slugify(date) {
+  if (!date || !date.trim()) return 'newsletter';
+  return date
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Show a temporary toast message in `container`.
+ * Auto-dismisses after `duration` ms.
+ * @param {HTMLElement} container
+ * @param {string} message
+ * @param {'success'|'error'} [type='success']
+ * @param {number} [duration=2800]
+ */
+function showExportToast(container, message, type = 'success', duration = 2800) {
+  // Remove any existing toast
+  const existing = container.querySelector('.export-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = `export-toast export-toast--${type}`;
+  // Use textContent — never innerHTML — for user-derived or code-derived messages
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  // Fade in
+  requestAnimationFrame(() => toast.classList.add('export-toast--visible'));
+
+  setTimeout(() => {
+    toast.classList.remove('export-toast--visible');
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+  }, duration);
+}
+
+/**
+ * Copy the rendered newsletter HTML to the clipboard.
+ * Falls back to a hidden textarea + execCommand if the Clipboard API is unavailable.
+ * Exposed as `window.__copyHtml` for testability.
+ */
+function copyHtml() {
+  const container = document.querySelector('[data-step="export"]');
+  if (!state.issue) {
+    if (container) showExportToast(container, 'No issue loaded — nothing to copy.', 'error');
+    return;
+  }
+
+  const html = renderNewsletter(state.issue);
+
+  const onSuccess = () => {
+    if (container) showExportToast(container, 'HTML copied to clipboard!', 'success');
+  };
+  const onError = (err) => {
+    console.error('[export] copyHtml failed:', err);
+    if (container) showExportToast(container, 'Copy failed — check browser permissions.', 'error');
+  };
+
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(html).then(onSuccess, (err) => {
+      // Clipboard API rejected — try fallback
+      try {
+        fallbackCopy(html);
+        onSuccess();
+      } catch (e) {
+        onError(err || e);
+      }
+    });
+  } else {
+    // No Clipboard API — use execCommand fallback
+    try {
+      fallbackCopy(html);
+      onSuccess();
+    } catch (e) {
+      onError(e);
+    }
+  }
+}
+
+/**
+ * Fallback copy using a hidden textarea + document.execCommand('copy').
+ * @param {string} text
+ */
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (!ok) throw new Error('execCommand copy returned false');
+}
+
+/**
+ * Download the rendered newsletter as an .html file.
+ * Exposed as `window.__downloadHtml` for testability.
+ */
+function downloadHtml() {
+  if (!state.issue) return;
+  const html = renderNewsletter(state.issue);
+  const slug = slugify(state.issue.date);
+  triggerDownload(
+    new Blob([html], { type: 'text/html' }),
+    `ERC_Newsletter_${slug}.html`
+  );
+}
+
+/**
+ * Download the issue model as an updated .md file.
+ * Exposed as `window.__downloadMarkdown` for testability.
+ */
+function downloadMarkdown() {
+  if (!state.issue) return;
+  const md = issueToMarkdown(state.issue);
+  const slug = slugify(state.issue.date);
+  triggerDownload(
+    new Blob([md], { type: 'text/markdown' }),
+    `ERC_Newsletter_${slug}.md`
+  );
+}
+
+/**
+ * Create a temporary object URL, click a hidden <a download>, then revoke it.
+ * @param {Blob} blob
+ * @param {string} filename
+ */
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Revoke after a tick to let the browser start the download
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+/**
+ * Render the export step UI.
+ * Called each time the wizard navigates to 'export'.
+ */
+function renderExport() {
+  const container = document.querySelector('[data-step="export"]');
+  if (!container) return;
+
+  const h2 = container.querySelector('h2');
+  container.innerHTML = '';
+  if (h2) container.appendChild(h2);
+
+  if (!state.issue) {
+    const msg = document.createElement('p');
+    msg.className = 'edit-empty-msg';
+    msg.textContent = 'No issue loaded. Go back to Upload and choose a file.';
+    container.appendChild(msg);
+    return;
+  }
+
+  // Description paragraph
+  const desc = document.createElement('p');
+  desc.className = 'export-desc';
+  desc.textContent = 'Your newsletter is ready. Copy the HTML to paste directly into Outlook Web App, or download the files.';
+  container.appendChild(desc);
+
+  // Button row
+  const btnRow = document.createElement('div');
+  btnRow.className = 'export-btn-row';
+
+  // Copy HTML
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'btn btn-primary export-action-btn';
+  copyBtn.textContent = 'Copy HTML';
+  copyBtn.addEventListener('click', copyHtml);
+
+  // Download .html
+  const dlHtmlBtn = document.createElement('button');
+  dlHtmlBtn.type = 'button';
+  dlHtmlBtn.className = 'btn btn-secondary export-action-btn';
+  dlHtmlBtn.textContent = 'Download .html';
+  dlHtmlBtn.addEventListener('click', downloadHtml);
+
+  // Download .md
+  const dlMdBtn = document.createElement('button');
+  dlMdBtn.type = 'button';
+  dlMdBtn.className = 'btn btn-secondary export-action-btn';
+  dlMdBtn.textContent = 'Download updated .md';
+  dlMdBtn.addEventListener('click', downloadMarkdown);
+
+  btnRow.appendChild(copyBtn);
+  btnRow.appendChild(dlHtmlBtn);
+  btnRow.appendChild(dlMdBtn);
+  container.appendChild(btnRow);
+
+  // Toast target — toasts are appended here
+}
+
+// ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 
@@ -602,4 +815,9 @@ window.__state = state;
 window.__renderTriage = renderTriage;
 window.__renderPreview = renderPreview;
 window.__renderEdit = renderEdit;
+window.__renderExport = renderExport;
+window.__copyHtml = copyHtml;
+window.__downloadHtml = downloadHtml;
+window.__downloadMarkdown = downloadMarkdown;
+window.__slugify = slugify;
 goTo('upload');
