@@ -10,6 +10,7 @@ import { parseMarkdown } from './parser.js';
 import { SECTION_REGISTRY } from './model.js';
 import { renderNewsletter } from './template.js';
 import { issueToMarkdown } from './serialize.js';
+import { saveState, loadState, clearState } from './state.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -23,6 +24,30 @@ const state = {
   /** @type {string} Current wizard step key */
   step: 'upload',
 };
+
+// ---------------------------------------------------------------------------
+// Autosave helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Tiny debounce: returns a function that delays `fn` by `wait` ms,
+ * cancelling any pending call if invoked again before the delay fires.
+ * @param {Function} fn
+ * @param {number} wait - milliseconds
+ * @returns {Function}
+ */
+function debounce(fn, wait) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+/** Schedule a debounced save of the current issue to localStorage. */
+const scheduleSave = debounce(() => {
+  if (state.issue) saveState(state.issue);
+}, 400);
 
 // ---------------------------------------------------------------------------
 // DOM refs
@@ -166,6 +191,7 @@ function handleFile(file) {
     try {
       const { issue, warnings } = parseMarkdown(text);
       state.issue = issue;
+      scheduleSave();
 
       if (warnings && warnings.length > 0) {
         const items = warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
@@ -265,6 +291,7 @@ function renderTriage() {
   dateInput.value = issue ? (issue.date || '') : '';
   dateInput.addEventListener('input', () => {
     if (issue) issue.date = dateInput.value;
+    scheduleSave();
   });
   dateLabel.appendChild(dateInput);
   metaSection.appendChild(dateLabel);
@@ -279,6 +306,7 @@ function renderTriage() {
   imgInput.value = issue ? (issue.headerImageUrl || '') : '';
   imgInput.addEventListener('input', () => {
     if (issue) issue.headerImageUrl = imgInput.value;
+    scheduleSave();
   });
   imgLabel.appendChild(imgInput);
   metaSection.appendChild(imgLabel);
@@ -312,6 +340,7 @@ function renderTriage() {
     checkbox.checked = isEnabled;
     checkbox.addEventListener('change', () => {
       if (secData) secData.enabled = checkbox.checked;
+      scheduleSave();
     });
     checkLabel.appendChild(checkbox);
 
@@ -359,6 +388,7 @@ function renderTriage() {
             evItems.forEach((ev) => { ev.featured = false; });
             if (!wasFeatured) item.featured = true;
             renderEventsList();
+            scheduleSave();
           });
 
           // Title (user-derived — use textContent)
@@ -378,6 +408,7 @@ function renderTriage() {
             if (idx > 0) {
               [evItems[idx - 1], evItems[idx]] = [evItems[idx], evItems[idx - 1]];
               renderEventsList();
+              scheduleSave();
             }
           });
 
@@ -393,6 +424,7 @@ function renderTriage() {
             if (idx < evItems.length - 1) {
               [evItems[idx], evItems[idx + 1]] = [evItems[idx + 1], evItems[idx]];
               renderEventsList();
+              scheduleSave();
             }
           });
 
@@ -520,6 +552,7 @@ function renderEdit() {
     ctrl.addEventListener('input', () => {
       onInput(ctrl.value);
       refreshEditPreview(liveIframe);
+      scheduleSave();
     });
 
     lbl.appendChild(ctrl);
@@ -808,8 +841,61 @@ function renderExport() {
 }
 
 // ---------------------------------------------------------------------------
-// Boot
+// Boot — restore prompt
 // ---------------------------------------------------------------------------
+
+/**
+ * Show a restore-session banner inside the upload step if a saved issue
+ * exists in localStorage. Restore → set state.issue and advance to triage.
+ * Discard → clear storage and hide the banner.
+ */
+function maybeShowRestoreBanner() {
+  const saved = loadState();
+  if (!saved) return;
+
+  const uploadSection = document.querySelector('[data-step="upload"]');
+  if (!uploadSection) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'restore-banner';
+  banner.className = 'restore-banner';
+  banner.setAttribute('role', 'region');
+  banner.setAttribute('aria-label', 'Restore in-progress newsletter');
+
+  const msg = document.createElement('p');
+  msg.className = 'restore-banner__msg';
+  msg.textContent = 'Restore your in-progress newsletter?';
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'restore-banner__btns';
+
+  const restoreBtn = document.createElement('button');
+  restoreBtn.type = 'button';
+  restoreBtn.className = 'btn btn-primary restore-banner__btn';
+  restoreBtn.textContent = 'Restore';
+  restoreBtn.addEventListener('click', () => {
+    state.issue = saved;
+    banner.remove();
+    goTo('triage');
+  });
+
+  const discardBtn = document.createElement('button');
+  discardBtn.type = 'button';
+  discardBtn.className = 'btn btn-secondary restore-banner__btn';
+  discardBtn.textContent = 'Discard';
+  discardBtn.addEventListener('click', () => {
+    clearState();
+    banner.remove();
+  });
+
+  btnRow.appendChild(restoreBtn);
+  btnRow.appendChild(discardBtn);
+  banner.appendChild(msg);
+  banner.appendChild(btnRow);
+
+  // Insert at the top of the upload step section
+  uploadSection.insertBefore(banner, uploadSection.firstChild);
+}
 
 window.__state = state;
 window.__renderTriage = renderTriage;
@@ -820,4 +906,8 @@ window.__copyHtml = copyHtml;
 window.__downloadHtml = downloadHtml;
 window.__downloadMarkdown = downloadMarkdown;
 window.__slugify = slugify;
+window.__saveState = saveState;
+window.__loadState = loadState;
+window.__clearState = clearState;
 goTo('upload');
+maybeShowRestoreBanner();

@@ -4,6 +4,12 @@ import { readFileSync } from 'node:fs';
 import { issueToMarkdown } from '../js/serialize.js';
 import { parseMarkdown, _resetIds } from '../js/parser.js';
 
+test('issue survives JSON serialize/parse unchanged', () => {
+  const issue = parseMarkdown(readFileSync(new URL('../fixtures/full-issue.md', import.meta.url), 'utf8')).issue;
+  const round = JSON.parse(JSON.stringify(issue));
+  assert.deepEqual(round, issue);
+});
+
 test('issueToMarkdown round-trips through parseMarkdown', () => {
   _resetIds();
   const md = readFileSync(new URL('../fixtures/full-issue.md', import.meta.url), 'utf8');

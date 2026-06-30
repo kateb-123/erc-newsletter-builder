@@ -587,3 +587,35 @@ body {
   border: 1px solid #e8b4b4;
   color: #7a1010;
 }
+
+/* Restore-session banner (upload step) */
+.restore-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #fff8e6;
+  border: 1px solid #e8c96a;
+  border-radius: 6px;
+  font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 14px;
+}
+
+.restore-banner__msg {
+  margin: 0;
+  flex: 1;
+  color: #4a3800;
+  font-weight: 600;
+}
+
+.restore-banner__btns {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.restore-banner__btn {
+  padding: 6px 14px;
+  font-size: 13px;
+}
