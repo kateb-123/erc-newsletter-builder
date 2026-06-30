@@ -14,6 +14,21 @@ export function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+// ─── Edit-hook helper ─────────────────────────────────────────────────────────
+
+/**
+ * Returns data-edit-* attribute string when editable=true, else ''.
+ * Omits data-edit-item when itemId is null/undefined (intro case).
+ * All attribute VALUES are esc()'d.
+ */
+function editAttrs(section, itemId, field, editable) {
+  if (!editable) return '';
+  const secAttr = ` data-edit-section="${esc(section)}"`;
+  const itemAttr = itemId != null ? ` data-edit-item="${esc(String(itemId))}"` : '';
+  const fieldAttr = ` data-edit-field="${esc(field)}"`;
+  return secAttr + itemAttr + fieldAttr;
+}
+
 // ─── Common snippets ──────────────────────────────────────────────────────────
 
 const FONT_BODY = "'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif";
@@ -53,7 +68,7 @@ const SEE_MORE = `<tr><td style="padding: 10px 24px 22px 24px; text-align: right
  * Builds the ERC Research section (kind: briefs).
  * Groups items under "Research Briefs" eyebrow; followed by compact Submit callout.
  */
-function buildBriefs(sec) {
+function buildBriefs(sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
   let rows = sectionHeader('research', 'ERC Research');
 
@@ -63,14 +78,14 @@ function buildBriefs(sec) {
   sec.items.forEach((item, i) => {
     const { fields } = item;
     const titleLink = fields.url
-      ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;">${esc(fields.title)}</a>`
-      : esc(fields.title);
+      ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</a>`
+      : `<span${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</span>`;
     const topPad = i === 0 ? '13px' : '16px';
     rows += `
 <tr><td style="padding: ${topPad} 24px 0 40px;">
 <p style="margin:0 0 4px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 16px; font-weight: 700; color: #202020;">${titleLink}</p>
-${fields.authors ? `<p style="margin:0 0 8px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;">${esc(fields.authors)}</p>` : ''}
-${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">${esc(fields.summary)}</p>` : ''}
+${fields.authors ? `<p style="margin:0 0 8px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs('research', item.id, 'authors', editable)}>${esc(fields.authors)}</p>` : ''}
+${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('research', item.id, 'summary', editable)}>${esc(fields.summary)}</p>` : ''}
 </td></tr>`;
     if (i < sec.items.length - 1) {
       rows += DIVIDER;
@@ -94,7 +109,7 @@ ${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BO
  * Events: featured group gets a description; others title+meta only.
  * Opportunities: title+meta only for all groups.
  */
-function buildGroupedList(secReg, sec) {
+function buildGroupedList(secReg, sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
 
   const isEvents = secReg.key === 'events';
@@ -137,24 +152,25 @@ function buildGroupedList(secReg, sec) {
     items.forEach((item, i) => {
       const { fields, featured } = item;
       const topPad = i === 0 ? '7px' : '14px';
+      const sectionKey = secReg.key;
       const titleLink = fields.url
-        ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;">${esc(fields.title || '')}</a>`
-        : esc(fields.title || '');
+        ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs(sectionKey, item.id, 'title', editable)}>${esc(fields.title || '')}</a>`
+        : `<span${editAttrs(sectionKey, item.id, 'title', editable)}>${esc(fields.title || '')}</span>`;
 
       // Build meta line: date | time | location
       const metaParts = [fields.date, fields.time, fields.location].filter(Boolean);
       const metaLine = metaParts.length
-        ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;">${metaParts.map(esc).join(' | ')}</p>`
+        ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs(sectionKey, item.id, 'meta', editable)}>${metaParts.map(esc).join(' | ')}</p>`
         : '';
 
       // Description only for featured events
       const descLine = (isFeaturedGroup || featured) && fields.summary
-        ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">${esc(fields.summary)}</p>`
+        ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs(sectionKey, item.id, 'summary', editable)}>${esc(fields.summary)}</p>`
         : '';
 
       // For opportunities: use fields.meta as the meta line
       const oppMeta = !isEvents && fields.meta
-        ? `<p style="margin:0; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;">${esc(fields.meta)}</p>`
+        ? `<p style="margin:0; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs(sectionKey, item.id, 'meta', editable)}>${esc(fields.meta)}</p>`
         : '';
 
       // Divider between items within same group (not after featured group — uses section divider)
@@ -198,7 +214,7 @@ ${oppMeta}
  * Builds digest sections (policy, headlines) — grouped bullet lists.
  * Policy: title link only. Headlines: title + (Source) inline.
  */
-function buildGroupedDigest(secReg, sec) {
+function buildGroupedDigest(secReg, sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
 
   const isHeadlines = secReg.key === 'headlines';
@@ -238,9 +254,10 @@ function buildGroupedDigest(secReg, sec) {
       const isLast = i === items.length - 1;
       const bottomPad = isLast ? '0' : '7px';
 
+      const sectionKey = secReg.key;
       const titleLink = fields.url
-        ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;">${esc(fields.title || '')}</a>`
-        : esc(fields.title || '');
+        ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs(sectionKey, item.id, 'title', editable)}>${esc(fields.title || '')}</a>`
+        : `<span${editAttrs(sectionKey, item.id, 'title', editable)}>${esc(fields.title || '')}</span>`;
 
       // Headlines: append (Source) after the title link
       const sourcePart = isHeadlines && fields.source
@@ -268,7 +285,7 @@ function buildGroupedDigest(secReg, sec) {
  * programs/events: bold title link + meta line + optional summary.
  * happyhour: intro line + bulleted date | time | location per item.
  */
-function buildSpotlight(secReg, sec) {
+function buildSpotlight(secReg, sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
 
   let rows = sectionHeader('spotlight', 'ERC Spotlight');
@@ -327,8 +344,8 @@ function buildSpotlight(secReg, sec) {
         const { fields } = item;
         const topPad = i === 0 ? '7px' : '14px';
         const titleLink = fields.url
-          ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;">${esc(fields.title || '')}</a>`
-          : esc(fields.title || '');
+          ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs('spotlight', item.id, 'title', editable)}>${esc(fields.title || '')}</a>`
+          : `<span${editAttrs('spotlight', item.id, 'title', editable)}>${esc(fields.title || '')}</span>`;
 
         // Meta: use fields.meta if present, else join date | time | location
         let metaText = '';
@@ -339,11 +356,11 @@ function buildSpotlight(secReg, sec) {
           metaText = parts.join(' | ');
         }
         const metaLine = metaText
-          ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;">${esc(metaText)}</p>`
+          ? `<p style="margin:0 0 5px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs('spotlight', item.id, 'meta', editable)}>${esc(metaText)}</p>`
           : '';
 
         const summaryLine = fields.summary
-          ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">${esc(fields.summary)}</p>`
+          ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('spotlight', item.id, 'summary', editable)}>${esc(fields.summary)}</p>`
           : '';
 
         rows += `<tr><td style="padding: ${topPad} 24px 0 40px;">
@@ -394,7 +411,7 @@ function anchorIdForSection(sectionKey) {
 
 // ─── Header / masthead / intro / footer ──────────────────────────────────────
 
-function buildHeader(issue) {
+function buildHeader(issue, editable = false) {
   const imgSrc = issue.headerImageUrl || 'https://i.ibb.co/tPqcyQw2/NEWSLETTER1.png';
   const date = issue.date || '';
 
@@ -432,20 +449,20 @@ function buildHeader(issue) {
 </tr>
 <tr>
 <td colspan="2" style="padding: 24px 24px 30px 24px;">
-${buildIntro(issue.intro)}
+${buildIntro(issue.intro, editable)}
 </td>
 </tr>
 </tbody>
 </table>`;
 }
 
-function buildIntro(introText) {
+function buildIntro(introText, editable = false) {
   if (!introText) return '';
   const paras = introText.split(/\n\n+/).filter(Boolean);
   if (paras.length === 0) return '';
   const styled = paras.map((p, i) => {
     const margin = i < paras.length - 1 ? 'margin: 0px 0px 12px;' : 'margin: 0px;';
-    return `<p style="text-align: left; line-height: 1.5; ${margin} font-family: ${FONT_BODY}; font-size: 14px; color: #202020;">${esc(p.trim())}</p>`;
+    return `<p style="text-align: left; line-height: 1.5; ${margin} font-family: ${FONT_BODY}; font-size: 14px; color: #202020;"${editAttrs('intro', null, 'intro', editable)}>${esc(p.trim())}</p>`;
   });
   return styled.join('\n');
 }
@@ -476,7 +493,8 @@ function buildFooter() {
 
 // ─── Main entry point ─────────────────────────────────────────────────────────
 
-export function renderNewsletter(issue) {
+export function renderNewsletter(issue, opts = {}) {
+  const editable = opts.editable === true;
   const parts = [];
 
   // Outer wrapper + head
@@ -519,7 +537,7 @@ export function renderNewsletter(issue) {
 <tbody><tr><td>`);
 
   // Header / masthead / intro
-  parts.push(buildHeader(issue));
+  parts.push(buildHeader(issue, editable));
 
   // Sections in SECTION_REGISTRY order
   for (const secReg of SECTION_REGISTRY) {
@@ -531,16 +549,16 @@ export function renderNewsletter(issue) {
     let sectionHtml = '';
     switch (secReg.kind) {
       case 'briefs':
-        sectionHtml = buildBriefs(sec);
+        sectionHtml = buildBriefs(sec, editable);
         break;
       case 'grouped-list':
-        sectionHtml = buildGroupedList(secReg, sec);
+        sectionHtml = buildGroupedList(secReg, sec, editable);
         break;
       case 'grouped-digest':
-        sectionHtml = buildGroupedDigest(secReg, sec);
+        sectionHtml = buildGroupedDigest(secReg, sec, editable);
         break;
       case 'spotlight':
-        sectionHtml = buildSpotlight(secReg, sec);
+        sectionHtml = buildSpotlight(secReg, sec, editable);
         break;
     }
     if (sectionHtml) parts.push(sectionHtml);

@@ -87,3 +87,9 @@ test('jump-nav contains anchor for the events section', () => {
     'Jump-nav must contain href="#events" for the enabled events section'
   );
 });
+
+test('export output has no edit hooks; editable output does', () => {
+  const i = issueOf('full-issue.md');
+  assert.ok(!/data-edit-/.test(renderNewsletter(i)));            // default = clean export
+  assert.match(renderNewsletter(i, { editable: true }), /data-edit-field="title"/);
+});
