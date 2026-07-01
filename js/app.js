@@ -276,48 +276,6 @@ window.__handleFile = handleFile;
 // ---------------------------------------------------------------------------
 
 /**
- * Build a read-only inline "peek" of an item's content for the Outline step —
- * its fields (author, details, date, summary, …) shown as quiet label:value
- * lines. Title is omitted (it's already the row). Returns a hidden element.
- * @param {object} item - an issue section item ({ fields, ... })
- * @returns {HTMLElement}
- */
-function buildItemPreview(item) {
-  const wrap = document.createElement('div');
-  wrap.className = 'triage-item-preview';
-  const fields = (item && item.fields) || {};
-  const has = (k) => fields[k] != null && String(fields[k]).trim() !== '';
-  // Preferred reading order, then any other non-empty fields (never the title).
-  const preferred = ['authors', 'author', 'meta', 'date', 'summary', 'description', 'url'];
-  const keys = [
-    ...preferred.filter(has),
-    ...Object.keys(fields).filter((k) => k !== 'title' && !preferred.includes(k) && has(k)),
-  ];
-
-  if (keys.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'triage-preview-empty';
-    empty.textContent = 'No additional details.';
-    wrap.appendChild(empty);
-    return wrap;
-  }
-
-  for (const k of keys) {
-    const line = document.createElement('div');
-    line.className = 'triage-preview-line';
-    const lbl = document.createElement('span');
-    lbl.className = 'triage-preview-label';
-    lbl.textContent = (FIELD_LABELS[k] || humanize(k)) + ': ';
-    const val = document.createElement('span');
-    val.textContent = String(fields[k]); // user-derived — textContent only
-    line.appendChild(lbl);
-    line.appendChild(val);
-    wrap.appendChild(line);
-  }
-  return wrap;
-}
-
-/**
  * Render the triage step UI from `state.issue`.
  * Called each time the wizard navigates to the 'triage' step.
  */
@@ -393,29 +351,6 @@ function renderTriage() {
 
     sectionsList.appendChild(row);
 
-    // ERC Research: optional "Submit your research" callout toggle (default on)
-    if (reg.key === 'research' && items.length > 0) {
-      const subRow = document.createElement('div');
-      subRow.className = 'triage-subtoggle-row';
-      const subLabel = document.createElement('label');
-      subLabel.className = 'triage-toggle-label';
-      const subCb = document.createElement('input');
-      subCb.type = 'checkbox';
-      subCb.className = 'triage-toggle';
-      subCb.checked = secData.showSubmit !== false;
-      subCb.addEventListener('change', () => {
-        secData.showSubmit = subCb.checked;
-        scheduleSave();
-      });
-      subLabel.appendChild(subCb);
-      const subName = document.createElement('span');
-      subName.className = 'triage-section-name';
-      subName.textContent = 'Include “Submit your research” callout';
-      subLabel.appendChild(subName);
-      subRow.appendChild(subLabel);
-      sectionsList.appendChild(subRow);
-    }
-
     // Every populated section lists its items with reorder controls: grouped
     // (under group labels) where the section defines groups, flat otherwise
     // (e.g. Featured Research). Only Events also shows the featured toggle.
@@ -458,50 +393,24 @@ function renderTriage() {
           for (const item of bucketItems) {
             // Index within the full section array (for reorder swaps)
             const secIdx = secItems.indexOf(item);
-            // Position within this bucket (for the position label + button disable)
+            // Position within this bucket (for button enable/disable)
             const grpIdx = bucketItems.indexOf(item);
+            const title = (item.fields && item.fields.title) || 'item';
 
             const evRow = document.createElement('div');
             evRow.className = 'triage-event-row';
 
-            // Read-only "peek" preview of this item's content, toggled by the
-            // caret or the title. Rebuilt each render (collapsed) — it's a quick
-            // glance, not persistent state.
-            const preview = buildItemPreview(item);
-            preview.hidden = true;
-            const togglePeek = () => {
-              const open = preview.hidden;
-              preview.hidden = !open;
-              caret.textContent = open ? '▾' : '▸';
-              caret.setAttribute('aria-expanded', String(open));
-            };
-
-            // Disclosure caret
-            const caret = document.createElement('button');
-            caret.type = 'button';
-            caret.className = 'triage-peek-btn';
-            caret.textContent = '▸';
-            caret.setAttribute('aria-label', 'Show details');
-            caret.setAttribute('aria-expanded', 'false');
-            caret.addEventListener('click', togglePeek);
-
-            // Title (user-derived — textContent only). Also toggles the peek.
+            // Title (user-derived — textContent only)
             const titleSpan = document.createElement('span');
             titleSpan.className = 'triage-event-title';
             titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
-            titleSpan.addEventListener('click', togglePeek);
-
-            // Position indicator (e.g. "2 of 5")
-            const posSpan = document.createElement('span');
-            posSpan.className = 'triage-event-pos';
-            posSpan.textContent = `${grpIdx + 1} of ${bucketItems.length}`;
 
             // Up button
             const upBtn = document.createElement('button');
             upBtn.type = 'button';
             upBtn.className = 'triage-reorder-btn';
             upBtn.textContent = '↑';
-            upBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" up (${grpIdx + 1} of ${bucketItems.length})`);
+            upBtn.setAttribute('aria-label', `Move "${title}" up`);
             upBtn.disabled = grpIdx === 0;
             upBtn.addEventListener('click', () => {
               const allItems = issue.sections[reg.key].items;
@@ -517,7 +426,7 @@ function renderTriage() {
             downBtn.type = 'button';
             downBtn.className = 'triage-reorder-btn';
             downBtn.textContent = '↓';
-            downBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" down (${grpIdx + 1} of ${bucketItems.length})`);
+            downBtn.setAttribute('aria-label', `Move "${title}" down`);
             downBtn.disabled = grpIdx === bucketItems.length - 1;
             downBtn.addEventListener('click', () => {
               const allItems = issue.sections[reg.key].items;
@@ -528,12 +437,10 @@ function renderTriage() {
               }
             });
 
-            evRow.appendChild(caret);
             evRow.appendChild(titleSpan);
 
-            // Featured toggle — events section only. Compact, aligned with the
-            // reorder arrows; the "what it does" note is a hover tooltip so it
-            // doesn't repeat on every row.
+            // Featured toggle — events section only. Compact; the "what it does"
+            // note is a hover tooltip so it doesn't repeat on every row.
             if (reg.key === 'events') {
               const featLabel = document.createElement('label');
               featLabel.className = 'triage-featured-label';
@@ -558,17 +465,44 @@ function renderTriage() {
               evRow.appendChild(featLabel);
             }
 
-            evRow.appendChild(posSpan);
-            evRow.appendChild(upBtn);
-            evRow.appendChild(downBtn);
+            // Reorder arrows — grouped so they can reveal on row hover/focus.
+            const reorderGroup = document.createElement('div');
+            reorderGroup.className = 'triage-reorder-group';
+            reorderGroup.appendChild(upBtn);
+            reorderGroup.appendChild(downBtn);
+            evRow.appendChild(reorderGroup);
+
             sectionContainer.appendChild(evRow);
-            sectionContainer.appendChild(preview);
           }
         }
       };
 
       renderSectionItems();
       sectionsList.appendChild(sectionContainer);
+
+      // ERC Research: optional "Submit your research" callout — a trailing
+      // opt-in beneath the research items.
+      if (reg.key === 'research') {
+        const subRow = document.createElement('div');
+        subRow.className = 'triage-subtoggle-row';
+        const subLabel = document.createElement('label');
+        subLabel.className = 'triage-toggle-label';
+        const subCb = document.createElement('input');
+        subCb.type = 'checkbox';
+        subCb.className = 'triage-toggle';
+        subCb.checked = secData.showSubmit !== false;
+        subCb.addEventListener('change', () => {
+          secData.showSubmit = subCb.checked;
+          scheduleSave();
+        });
+        subLabel.appendChild(subCb);
+        const subName = document.createElement('span');
+        subName.className = 'triage-section-name';
+        subName.textContent = 'Include “Submit your research” callout';
+        subLabel.appendChild(subName);
+        subRow.appendChild(subLabel);
+        sectionsList.appendChild(subRow);
+      }
     }
   }
 
