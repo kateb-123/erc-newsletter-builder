@@ -34,6 +34,12 @@ export function unescapeMd(s) {
   return (s || '').replace(/\\([^A-Za-z0-9\s])/g, '$1');
 }
 
+export function extractUrl(value) {
+  const v = (value || '').trim();
+  const m = v.match(/\]\(([^)]+)\)/);
+  return unescapeMd(m ? m[1] : v).trim();
+}
+
 let _idCounter = 0;
 export function _resetIds() { _idCounter = 0; } // test helper
 

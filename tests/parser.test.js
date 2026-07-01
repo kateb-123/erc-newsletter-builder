@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd } from '../js/parser.js';
+import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd, extractUrl } from '../js/parser.js';
 import { readFileSync } from 'node:fs';
 
 const md = `# ERC Newsletter
@@ -112,4 +112,13 @@ test('unescapeMd strips backslashes before punctuation', () => {
   assert.equal(unescapeMd('Howdy\\!'), 'Howdy!');
   assert.equal(unescapeMd('merc\\_pubs'), 'merc_pubs');
   assert.equal(unescapeMd('nothing to do'), 'nothing to do');
+});
+
+test('extractUrl pulls href from markdown links and passes bare urls', () => {
+  assert.equal(
+    extractUrl('[https://x.org/a](https://x.org/a)'), 'https://x.org/a');
+  assert.equal(
+    extractUrl('[reg](https://z.us/WN\\_cTTl\\#/registration)'),
+    'https://z.us/WN_cTTl#/registration');
+  assert.equal(extractUrl('https://plain.example'), 'https://plain.example');
 });
