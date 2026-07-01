@@ -414,23 +414,74 @@ body {
   background: #faf8f7;
 }
 
-/* Submit-callout opt-in — styled as a distinct SETTING chip beneath the
-   Featured Research items, set apart from the content list so it doesn't read
-   as just another item. */
-.triage-subtoggle-row {
+/* Submit-callout opt-in — an on/off switch beneath the Featured Research
+   items, set apart from the content list with spacing. */
+.triage-switch-row {
   display: flex;
-  width: fit-content;
   align-items: center;
+  gap: 10px;
   margin: 14px 0 18px 30px;
-  padding: 9px 14px;
-  background: #f5f2f0;
-  border: 1px solid #e7e1dd;
-  border-radius: 8px;
 }
 
-.triage-subtoggle-row .triage-section-name {
+.triage-switch-label {
   font-size: 13px;
   color: #4a4a4a;
+}
+
+.triage-switch {
+  position: relative;
+  display: inline-flex;
+  width: 38px;
+  height: 22px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.triage-switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.triage-switch-track {
+  position: absolute;
+  inset: 0;
+  background: #cfcac6;
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.triage-switch-track::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+
+.triage-switch-input:checked + .triage-switch-track {
+  background: #500000;
+}
+
+.triage-switch-input:checked + .triage-switch-track::before {
+  transform: translateX(16px);
+}
+
+.triage-switch-input:focus-visible + .triage-switch-track {
+  box-shadow: 0 0 0 3px rgba(80, 0, 0, 0.25);
+}
+
+.triage-switch-state {
+  font-size: 12px;
+  color: #6b6b6b;
+  min-width: 20px;
 }
 
 .triage-toggle-label {

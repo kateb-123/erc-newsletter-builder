@@ -481,26 +481,40 @@ function renderTriage() {
       sectionsList.appendChild(sectionContainer);
 
       // ERC Research: optional "Submit your research" callout — a trailing
-      // opt-in beneath the research items.
+      // on/off switch beneath the research items.
       if (reg.key === 'research') {
         const subRow = document.createElement('div');
-        subRow.className = 'triage-subtoggle-row';
-        const subLabel = document.createElement('label');
-        subLabel.className = 'triage-toggle-label';
+        subRow.className = 'triage-switch-row';
+
+        const subName = document.createElement('span');
+        subName.className = 'triage-switch-label';
+        subName.textContent = 'Include “Submit your research” callout';
+
+        const sw = document.createElement('label');
+        sw.className = 'triage-switch';
+        sw.title = 'Show this callout in the newsletter for this issue';
         const subCb = document.createElement('input');
         subCb.type = 'checkbox';
-        subCb.className = 'triage-toggle';
+        subCb.className = 'triage-switch-input';
         subCb.checked = secData.showSubmit !== false;
+        const track = document.createElement('span');
+        track.className = 'triage-switch-track';
+        sw.appendChild(subCb);
+        sw.appendChild(track);
+
+        const stateLabel = document.createElement('span');
+        stateLabel.className = 'triage-switch-state';
+        stateLabel.textContent = subCb.checked ? 'On' : 'Off';
+
         subCb.addEventListener('change', () => {
           secData.showSubmit = subCb.checked;
+          stateLabel.textContent = subCb.checked ? 'On' : 'Off';
           scheduleSave();
         });
-        subLabel.appendChild(subCb);
-        const subName = document.createElement('span');
-        subName.className = 'triage-section-name';
-        subName.textContent = 'Include “Submit your research” callout';
-        subLabel.appendChild(subName);
-        subRow.appendChild(subLabel);
+
+        subRow.appendChild(subName);
+        subRow.appendChild(sw);
+        subRow.appendChild(stateLabel);
         sectionsList.appendChild(subRow);
       }
     }
