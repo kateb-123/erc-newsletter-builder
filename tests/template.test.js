@@ -39,7 +39,12 @@ test('renderProse linkifies markdown links and escapes the rest', () => {
 });
 
 test('featured event renders under a FEATURED eyebrow', () => {
-  const html = renderNewsletter(issueOf('full-issue.md'));
+  // New grammar has no featured marker in the doc — featured is chosen in the app.
+  const issue = issueOf('full-issue.md');
+  const ev = issue.sections.events.items.find(Boolean);
+  ev.group = 'featured';
+  ev.featured = true;
+  const html = renderNewsletter(issue);
   assert.match(html, /FEATURED/i);
 });
 

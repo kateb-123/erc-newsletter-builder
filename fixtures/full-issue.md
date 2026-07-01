@@ -1,140 +1,158 @@
 # ERC Newsletter
 
-## Meta
 date: June 16, 2026
-header_image_url: https://i.ibb.co/tPqcyQw2/NEWSLETTER1.png
 
-## Intro
+# Intro:
+
 Welcome to the June 16, 2026 issue of the ERC Newsletter. This issue features new research, upcoming events, and funding opportunities.
 
-## Featured ERC Research
+# Featured Research
 
-### Brief
-title: Teacher Retention and Salary in Texas Rural Districts
-authors: Jane Smith & John Doe
-summary: How do salary incentives affect rural teacher retention? This study examines three years of district-level data and finds that a 10% salary increase correlates with a 15% reduction in first-year attrition. These findings suggest targeted compensation reforms could meaningfully stabilize rural district staffing.
-url: https://erc.tamu.edu/briefs/teacher-retention
+## Research Brief
 
-### Brief
-title: Math Achievement Gaps in Early Childhood Programs
-authors: Maria Lopez, Chris Park, Dana Wu
-summary: Can high-dosage tutoring close early math gaps? A randomized trial across 20 Texas elementary schools shows a 0.4 SD gain for students receiving three weekly sessions. Policymakers should consider scaling this model through existing after-school funding streams.
-url: https://erc.tamu.edu/briefs/math-achievement
+### Brief #1
+**Title:** Teacher Retention and Salary in Texas Rural Districts
+**Authors:** Jane Smith & John Doe
+**Summary:** How do salary incentives affect rural teacher retention? This study examines three years of district-level data and finds that a 10% salary increase correlates with a 15% reduction in first-year attrition. These findings suggest targeted compensation reforms could meaningfully stabilize rural district staffing.
+**Url:** https://erc.tamu.edu/briefs/teacher-retention
 
-## ERC Spotlight
+### Brief #2
+**Title:** Math Achievement Gaps in Early Childhood Programs
+**Authors:** Maria Lopez, Chris Park, Dana Wu
+**Summary:** Can high-dosage tutoring close early math gaps? A randomized trial across 20 Texas elementary schools shows a 0.4 SD gain for students receiving three weekly sessions. Policymakers should consider scaling this model through existing after-school funding streams.
+**Url:** https://erc.tamu.edu/briefs/math-achievement
 
-### Spotlight Item
-group: Programs & Opportunities
-title: ERC Graduate Student Ambassadors
-meta: Applications open through July 1, 2026 | Graduate students
-summary: Ambassador cohort members represent ERC at campus events and support research dissemination. Apply to join the 2026–27 cohort.
-url: https://erc.tamu.edu/spotlight/ambassadors
+## Report
 
-### Spotlight Item
-group: Events
-title: ERC In the Works: Maria Lopez
-date: June 24, 2026
-time: 12:00 PM CT
-location: EDCT 318
-url: https://erc.tamu.edu/events/in-the-works-lopez
+### Report #1
+**Title:** Annual State of Texas Education Research Report
+**Authors:** ERC Staff
+**Summary:** This annual report synthesizes a year of ERC findings across teacher workforce, early childhood, and higher education access. It highlights three cross-cutting themes and offers a policy agenda for the coming legislative session.
+**Url:** https://erc.tamu.edu/reports/annual-2026
 
-### Spotlight Item
-group: This & That
-title: ERC Happy Hour
-date: Wed, June 25
-time: 5:00 PM
-location: Ice's Red House
+# ERC Spotlight
 
-## Upcoming Events
+## Programs & Opportunities
 
-### Event
-group: Featured
-title: ERC EdTalk: Steven Woltering
-date: June 18, 2026
-time: 12:00 PM
-location: WCSS 218
-summary: Dr. Woltering presents findings from his lab on self-regulation and academic motivation in middle school students. The talk includes a Q&A with the research team. Light lunch provided; all are welcome.
-url: https://erc.tamu.edu/events/edtalk-woltering
+### P&O #1
+**Title:** ERC Graduate Student Ambassadors
+**Metaline:** Applications open through July 1, 2026 | Graduate students
+**Summary:** Ambassador cohort members represent ERC at campus events and support research dissemination. Apply to join the 2026-27 cohort.
+**Url:** https://erc.tamu.edu/spotlight/ambassadors
 
-### Event
-group: Texas A&M
-title: ERC Brown Bag Lunch
-date: June 25, 2026
-time: 12:00 PM
-location: EDCT 301
-url: https://erc.tamu.edu/events/brown-bag
+## ERC Events
 
-### Event
-group: Online & Off-Campus
-title: AERA Webinar: Equity in Assessment
-date: June 20, 2026
-time: 2:00 PM
-location: Online
-url: https://aera.net/webinar-equity-assessment
+### Event #1
+**Title:** ERC In the Works: Maria Lopez
+**Date:** June 24, 2026
+**Time:** 12:00 PM CT
+**Location:** EDCT 318
+**Url:** https://erc.tamu.edu/events/in-the-works-lopez
 
-## Opportunities
+## This & That
 
-### Opportunity
-group: Funding & Grants
-title: CEHD Strategic Research Awards
-meta: Deadline: July 15, 2026
-url: https://erc.tamu.edu/opportunities/cehd-awards
+### Note #1
+**Title:** ERC Happy Hour
+**Date:** Wed, June 25
+**Time:** 5:00 PM
+**Location:** Ice's Red House
 
-### Opportunity
-group: Calls for Proposals
-title: AERA 2027 Annual Meeting Call for Submissions
-meta: Deadline: August 1, 2026
-url: https://aera.net/cfp-2027
+# Upcoming Events
 
-### Opportunity
-group: Miscellaneous
-title: Connect with Policymakers — Stipend Available
-meta: Deadline: June 30, 2026 | Graduate students
-url: https://erc.tamu.edu/opportunities/policymakers
+## Texas A&M
 
-## New Education Policy Research
+### Event #1
+**Title:** ERC Brown Bag Lunch
+**Date:** June 25, 2026
+**Time:** 12:00 PM
+**Location:** EDCT 301
+**Url:** https://erc.tamu.edu/events/brown-bag
 
-### Paper
-group: Working Papers
-title: Fiscal Equity in State Education Finance Systems
-source: NBER
-meta: May 2026
-url: https://nber.org/papers/fiscal-equity
+## Off-Campus & Online
 
-### Paper
-group: Peer-Reviewed
-title: Instructional Coaching Effects on Teacher Practice
-source: American Educational Research Journal
-meta: June 2026
-url: https://journals.sagepub.com/coaching-effects
+### Event #1
+**Title:** AERA Webinar: Equity in Assessment
+**Date:** June 20, 2026
+**Time:** 2:00 PM
+**Location:** Online
+**Url:** https://aera.net/webinar-equity-assessment
 
-### Paper
-group: Miscellaneous
-title: Principal Turnover and School Climate
-source: Education Finance and Policy
-meta: April 2026
-url: https://mitpress.mit.edu/efp-principal-turnover
+# Opportunities
 
-## Education Headlines
+## Funding & Grants
 
-### Headline
-group: Federal
-title: Department of Education Releases Updated Title I Guidance
-source: Ed Week
-date: June 14, 2026
-url: https://edweek.org/title-i-guidance
+### F&G #1
+**Title:** CEHD Strategic Research Awards
+**Metaline:** Deadline: July 15, 2026
+**Url:** https://erc.tamu.edu/opportunities/cehd-awards
 
-### Headline
-group: Federal
-title: Congress Debates ESSER Spending Accountability Rules
-source: The 74
-date: June 12, 2026
-url: https://the74million.org/esser-accountability
+## Fellowships & Training
 
-### Headline
-group: Texas
-title: TEA Announces New Literacy Curriculum Pilot
-source: Texas Tribune
-date: June 10, 2026
-url: https://texastribune.org/tea-literacy-pilot
+### F&T #1
+**Title:** Emerging Scholars Summer Fellowship
+**Metaline:** Deadline: July 5, 2026 | Doctoral students
+**Url:** https://erc.tamu.edu/opportunities/emerging-scholars
 
+## Calls for Proposals
+
+### Call #1
+**Title:** AERA 2027 Annual Meeting Call for Submissions
+**Metaline:** Deadline: August 1, 2026
+**Url:** https://aera.net/cfp-2027
+
+## Miscellaneous
+
+### Misc #1
+**Title:** Connect with Policymakers — Stipend Available
+**Metaline:** Deadline: June 30, 2026 | Graduate students
+**Url:** https://erc.tamu.edu/opportunities/policymakers
+
+# New Education Policy Research
+
+## Working Papers
+
+### WP #1
+**Title:** Fiscal Equity in State Education Finance Systems
+**Source:** NBER
+**Metaline:** May 2026
+**Url:** https://nber.org/papers/fiscal-equity
+
+## Peer Reviewed
+
+### PR #1
+**Title:** Instructional Coaching Effects on Teacher Practice
+**Source:** American Educational Research Journal
+**Metaline:** June 2026
+**Url:** https://journals.sagepub.com/coaching-effects
+
+## Miscellaneous
+
+### Misc #1
+**Title:** Principal Turnover and School Climate
+**Source:** Education Finance and Policy
+**Metaline:** April 2026
+**Url:** https://mitpress.mit.edu/efp-principal-turnover
+
+# Education Headlines
+
+## Federal
+
+### Fed #1
+**Title:** Department of Education Releases Updated Title I Guidance
+**Source:** Ed Week
+**Date:** June 14, 2026
+**Url:** https://edweek.org/title-i-guidance
+
+### Fed #2
+**Title:** Congress Debates ESSER Spending Accountability Rules
+**Source:** The 74
+**Date:** June 12, 2026
+**Url:** https://the74million.org/esser-accountability
+
+## Texas
+
+### TX #1
+**Title:** TEA Announces New Literacy Curriculum Pilot
+**Source:** Texas Tribune
+**Date:** June 10, 2026
+**Url:** https://texastribune.org/tea-literacy-pilot

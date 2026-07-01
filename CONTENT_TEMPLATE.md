@@ -4,172 +4,175 @@ ERC NEWSLETTER — AI CONTENT CONTRACT
 =============================================================================
 HOW TO USE THIS FILE
 ---------------------
-1. Fill in every ### block below with real content for this issue.
-   • Each ### block = one item (one event, one brief, one headline, etc.).
-   • Add extra ### blocks or delete unused ones as needed.
-   • The comment hints <!-- add/remove blocks --> show you where.
+1. Fill in every "### Item" block below with real content for this issue.
+   - One "###" heading = one item (one event, one brief, one headline, etc.).
+   - The "###" label text is ignored (e.g. "Brief #1") — only the fields matter.
+   - Add extra "###" blocks or delete unused ones as needed.
 
-2. Required fields vary by section — use the fields shown in the examples.
+2. Grammar, in one line:
+     "#"   = SECTION   (e.g. Featured Research)
+     "##"  = GROUP     (e.g. Research Brief) inside the current section
+     "###" = ITEM      (one card)
+     "**Label:** value" = a FIELD on the current item.
    Delete any field line you don't need; leave no blank values.
 
-3. group: tells the builder which sub-group an item belongs to.
-   Valid group: values per section:
-     ERC Spotlight      → Programs & Opportunities | Events | This & That
-     Upcoming Events    → Featured | Texas A&M | Online & Off-Campus
-     Opportunities      → Funding & Grants | Fellowships & Training | Calls for Proposals | Miscellaneous
-     New Education Policy Research → Working Papers | Peer-Reviewed | Miscellaneous
-     Education Headlines → Federal | Texas
+3. Fields are matched by label (case-insensitive; bold optional):
+     Title, Authors, Summary, Date, Time, Location, Source, Url.
+     "Metaline" maps to the item's meta line.
+   For Url, a "[text](https://...)" markdown link or a bare URL both work.
 
-4. Featured event: mark exactly ONE Upcoming Events item with featured: yes.
-   That item gets an expanded description; all others get title + meta only.
+4. Featured event: do NOT mark a featured event in this doc. You choose the one
+   featured event later, in the app's Outline step, with the Featured toggle.
 
-5. Sections with no content this issue: delete the entire ## Section block
-   (from the ## header line down to the next ##).
+5. Sections with no content this issue: delete the entire "#" section block
+   (from its "#" heading down to the next "#").
 
-6. Do not change the ## Section header names — the builder matches them exactly.
+6. Do not rename the "#" section or "##" group headings — the builder matches
+   them by name.
 
-7. The ## Meta block (date + header_image_url) is REQUIRED every issue.
+7. The loose "date:" line under the title and the "# Intro:" block are REQUIRED
+   every issue. The header banner image uses the standard ERC default.
 =============================================================================
 -->
 
 # ERC Newsletter
 
-## Meta
 date: [Month DD, YYYY]
-header_image_url: https://i.ibb.co/tPqcyQw2/NEWSLETTER1.png
 
-## Intro
-[Write 2–3 sentences welcoming readers to this issue. Mention the date, any major theme, and what's inside. Example: "Welcome to the July 14 ERC Newsletter. This issue features new research on early-childhood interventions, upcoming EdTalks, and a call for CEHD grant proposals. Read on for events, funding opportunities, and the latest in education policy."]
+# Intro:
 
-## Featured ERC Research
-<!-- add/remove blocks — one ### per published research brief -->
+[Write 2-3 sentences welcoming readers to this issue. Mention the date, any major theme, and what's inside. Inline [links](https://example.com) are kept. Example: "Welcome to the July 14 ERC Newsletter. This issue features new research on early-childhood interventions, upcoming EdTalks, and a call for CEHD grant proposals."]
 
-### Brief
-title: [Full title of the research brief]
-authors: [First Last & First Last]
-summary: [Hook question that motivates the study. Key finding with real numbers or effect sizes. Implication for practice or policy — one sentence.]
-url: https://[link-to-pdf-or-abstract]
+# Featured Research
 
-### Brief
-title: [Full title of the second research brief]
-authors: [First Last, First Last & First Last]
-summary: [Hook question. Key finding with numbers. Implication.]
-url: https://[link-to-pdf-or-abstract]
+## Research Brief
 
-## ERC Spotlight
-<!-- add/remove blocks — one ### per item; group must be Programs & Opportunities, Events, or This & That -->
+### Brief #1
+**Title:** [Full title of the research brief]
+**Authors:** [First Last & First Last]
+**Summary:** [Hook question that motivates the study. Key finding with real numbers or effect sizes. Implication for practice or policy — one sentence.]
+**Url:** [text](https://link-to-pdf-or-abstract)
 
-### Spotlight Item
-group: Programs & Opportunities
-title: [Program or opportunity name — e.g. "Summer Graduate Research Program"]
-meta: [Key detail — e.g. deadline, eligibility]
-summary: [1–2 sentence description of what participants do and who should apply.]
-url: https://[details-or-application-link]
+## Report
 
-### Spotlight Item
-group: Events
-title: [ERC-hosted event name — e.g. "ERC In the Works: Researcher Name"]
-date: [Month DD, YYYY]
-time: [H:MM AM/PM CT]
-location: [Building Room or Zoom link description]
-url: https://[details-or-RSVP-link]
+### Report #1
+**Title:** [Full title of the report]
+**Authors:** [First Last]
+**Summary:** [Hook. Key finding with numbers. Implication.]
+**Url:** [text](https://link-to-pdf-or-abstract)
 
-### Spotlight Item
-group: This & That
-title: [Anything else worth a mention — e.g. "ERC Happy Hour" or a quick note]
-meta: [Optional detail — e.g. date/time/venue, or leave off]
-summary: [Optional 1–2 sentence blurb.]
-url: https://[optional-link]
+# ERC Spotlight
 
-## Upcoming Events
-<!-- add/remove blocks — one ### per event; mark exactly ONE with featured: yes -->
+## Programs & Opportunities
 
-### Event
-group: Featured
-featured: yes
-title: [Event Name — e.g. "ERC EdTalk: Researcher Name"]
-date: [Month DD, YYYY]
-time: [H:MM AM/PM CT]
-location: [Building Room or Zoom link description]
-summary: [3 sentences: what the talk/event is about, who the speaker is and their expertise, why attendees should come.]
-url: https://[RSVP-or-details-link]
+### P&O #1
+**Title:** [Program or opportunity name — e.g. "Summer Graduate Research Program"]
+**Metaline:** [Key detail — e.g. deadline, eligibility]
+**Summary:** [1-2 sentence description of what participants do and who should apply.]
+**Url:** [text](https://details-or-application-link)
 
-### Event
-group: Texas A&M
-title: [On-campus event title]
-date: [Month DD, YYYY]
-time: [H:MM AM/PM CT]
-location: [Building Room]
-url: https://[details-link]
+## ERC Events
 
-### Event
-group: Online & Off-Campus
-title: [Webinar or external event title]
-date: [Month DD, YYYY]
-time: [H:MM AM/PM CT]
-location: [Zoom / organization name]
-url: https://[registration-link]
+### Event #1
+**Title:** [ERC-hosted event name — e.g. "ERC In the Works: Researcher Name"]
+**Date:** [Month DD, YYYY]
+**Time:** [H:MM AM/PM CT]
+**Location:** [Building Room or Zoom link description]
+**Url:** [text](https://details-or-RSVP-link)
 
-## Opportunities
-<!-- add/remove blocks — one ### per opportunity -->
+## This & That
 
-### Opportunity
-group: Funding & Grants
-title: [Grant or award name]
-meta: [Deadline: Month DD, YYYY]
-url: https://[application-link]
+### Note #1
+**Title:** [Anything else worth a mention — e.g. "ERC Happy Hour" or a quick note]
+**Metaline:** [Optional detail — e.g. date/time/venue]
+**Summary:** [Optional 1-2 sentence blurb.]
+**Url:** [text](https://optional-link)
 
-### Opportunity
-group: Fellowships & Training
-title: [Fellowship or training program name]
-meta: [Deadline: Month DD, YYYY | Graduate students]
-url: https://[application-link]
+# Upcoming Events
 
-### Opportunity
-group: Calls for Proposals
-title: [Conference or journal CFP name]
-meta: [Deadline: Month DD, YYYY]
-url: https://[submission-link]
+## Texas A&M
 
-### Opportunity
-group: Miscellaneous
-title: [Other research-engagement opportunity]
-meta: [Deadline: Month DD, YYYY]
-url: https://[details-link]
+### Event #1
+**Title:** [On-campus event title]
+**Date:** [Month DD, YYYY]
+**Time:** [H:MM AM/PM CT]
+**Location:** [Building Room]
+**Url:** [text](https://details-link)
 
-## New Education Policy Research
-<!-- add/remove blocks — one ### per paper; group must be Working Papers, Peer-Reviewed, or Miscellaneous -->
+## Off-Campus & Online
 
-### Paper
-group: Working Papers
-title: [Full paper title]
-source: [Publisher or repository name]
-url: https://[link-to-paper]
+### Event #1
+**Title:** [Webinar or external event title]
+**Date:** [Month DD, YYYY]
+**Time:** [H:MM AM/PM CT]
+**Location:** [Zoom / organization name]
+**Url:** [text](https://registration-link)
 
-### Paper
-group: Peer-Reviewed
-title: [Full paper title]
-source: [Journal name]
-url: https://[link-to-paper]
+# Opportunities
 
-### Paper
-group: Miscellaneous
-title: [Full paper title]
-source: [Source name]
-url: https://[link-to-paper]
+## Funding & Grants
 
-## Education Headlines
-<!-- add/remove blocks — one ### per headline; group must be Federal or Texas -->
+### F&G #1
+**Title:** [Grant or award name]
+**Metaline:** [Deadline: Month DD, YYYY]
+**Url:** [text](https://application-link)
 
-### Headline
-group: Federal
-title: [Headline title]
-source: [Publication name]
-url: https://[article-link]
+## Fellowships & Training
 
-### Headline
-group: Texas
-title: [Headline title]
-source: [Publication name]
-url: https://[article-link]
+### F&T #1
+**Title:** [Fellowship or training program name]
+**Metaline:** [Deadline: Month DD, YYYY | Graduate students]
+**Url:** [text](https://application-link)
 
+## Calls for Proposals
+
+### Call #1
+**Title:** [Conference or journal CFP name]
+**Metaline:** [Deadline: Month DD, YYYY]
+**Url:** [text](https://submission-link)
+
+## Miscellaneous
+
+### Misc #1
+**Title:** [Other research-engagement opportunity]
+**Metaline:** [Deadline: Month DD, YYYY]
+**Url:** [text](https://details-link)
+
+# New Education Policy Research
+
+## Working Papers
+
+### WP #1
+**Title:** [Full paper title]
+**Source:** [Publisher or repository name]
+**Url:** [text](https://link-to-paper)
+
+## Peer Reviewed
+
+### PR #1
+**Title:** [Full paper title]
+**Source:** [Journal name]
+**Url:** [text](https://link-to-paper)
+
+## Miscellaneous
+
+### Misc #1
+**Title:** [Full paper title]
+**Source:** [Source name]
+**Url:** [text](https://link-to-paper)
+
+# Education Headlines
+
+## Federal
+
+### Fed #1
+**Title:** [Headline title]
+**Source:** [Publication name]
+**Url:** [text](https://article-link)
+
+## Texas
+
+### TX #1
+**Title:** [Headline title]
+**Source:** [Publication name]
+**Url:** [text](https://article-link)

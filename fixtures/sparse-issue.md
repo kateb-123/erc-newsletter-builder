@@ -1,18 +1,18 @@
 # ERC Newsletter
 
-## Meta
 date: June 16, 2026
-header_image_url: https://i.ibb.co/tPqcyQw2/NEWSLETTER1.png
 
-## Intro
+# Intro:
+
 Welcome to the June 16, 2026 issue of the ERC Newsletter.
 
-## Upcoming Events
+# Upcoming Events
 
-### Event
-group: Texas A&M
-title: ERC EdTalk: Steven Woltering
-date: June 18, 2026
-time: 12:00 PM
-location: WCSS 218
-url: https://erc.tamu.edu/events/edtalk
+## Texas A&M
+
+### Event #1
+**Title:** ERC EdTalk: Steven Woltering
+**Date:** June 18, 2026
+**Time:** 12:00 PM
+**Location:** WCSS 218
+**Url:** https://erc.tamu.edu/events/edtalk

@@ -1,90 +1,38 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd, extractUrl, parseFieldLine } from '../js/parser.js';
+import { parseMarkdown, _resetIds, unescapeMd, extractUrl, parseFieldLine } from '../js/parser.js';
 import { readFileSync } from 'node:fs';
 
 const md = `# ERC Newsletter
-## Meta
 date: June 16, 2026
-header_image_url: https://example.com/h.png
 
-## Intro
+# Intro:
 Welcome to this issue.
 
-## Upcoming Events
+# Upcoming Events
+## Texas A&M
 ### Event
-title: Something
-
-## Mystery Section
-### Item
-title: x
+**Title:** Something
 `;
-
-test('splitSections pulls meta + intro', () => {
-  const { meta } = splitSections(md);
-  assert.equal(meta.date, 'June 16, 2026');
-  assert.equal(meta.headerImageUrl, 'https://example.com/h.png');
-  assert.equal(meta.intro, 'Welcome to this issue.');
-});
-
-test('splitSections maps known + flags unknown headers', () => {
-  const { blocks } = splitSections(md);
-  const events = blocks.find(b => b.sectionKey === 'events');
-  assert.ok(events && /title: Something/.test(events.rawText));
-  const unknown = blocks.find(b => b.unknownHeader);
-  assert.equal(unknown.unknownHeader, 'Mystery Section');
-});
-
-test('parseItems reads grouped events with featured flag', () => {
-  _resetIds();
-  const raw = `### Event
-group: Featured
-title: ERC EdTalk
-date: July 10
-time: 3pm
-location: WCSS 218
-
-### Event
-group: Texas A&M
-title: Brown Bag
-date: July 12
-`;
-  const items = parseItems('events', raw);
-  assert.equal(items.length, 2);
-  assert.equal(items[0].featured, true);
-  assert.equal(items[0].group, 'featured');
-  assert.equal(items[0].fields.title, 'ERC EdTalk');
-  assert.equal(items[0].fields.location, 'WCSS 218');
-  assert.equal(items[1].group, 'tamu');
-  assert.equal(items[1].featured, false);
-  assert.match(items[0].id, /^itm_/);
-});
-
-test('parseItems reads url from link/link_url aliases', () => {
-  _resetIds();
-  const items = parseItems('headlines', `### Headline
-group: Federal
-title: Big News
-source: EdWeek
-link: https://x.com/a
-`);
-  assert.equal(items[0].fields.url, 'https://x.com/a');
-  assert.equal(items[0].fields.source, 'EdWeek');
-});
 
 test('parseMarkdown enables only sections with content', () => {
   _resetIds();
-  const md = readFileSync(new URL('../fixtures/sparse-issue.md', import.meta.url), 'utf8');
   const { issue, warnings } = parseMarkdown(md);
+  assert.deepEqual(warnings, []);
+  assert.equal(issue.date, 'June 16, 2026');
+  assert.equal(issue.intro, 'Welcome to this issue.');
   assert.equal(issue.sections.events.enabled, true);
   assert.ok(issue.sections.events.items.length > 0);
-  assert.equal(issue.sections.spotlight.enabled, false); // absent in sparse fixture
-  assert.equal(issue.date, 'June 16, 2026');
+  assert.equal(issue.sections.events.items[0].group, 'tamu');
+  assert.equal(issue.sections.events.items[0].fields.title, 'Something');
+  // every other section is absent → disabled
+  assert.equal(issue.sections.spotlight.enabled, false);
+  assert.equal(issue.sections.research.enabled, false);
 });
 
-test('parseMarkdown warns on unknown headers', () => {
-  const { warnings } = parseMarkdown('## Meta\ndate: x\n## Mystery\n### Item\ntitle: y\n');
-  assert.ok(warnings.some(w => /Mystery/.test(w)));
+test('parseMarkdown warns on an unknown section heading', () => {
+  const { warnings } = parseMarkdown('# ERC Newsletter\n# Mystery Section\n### Item\n**Title:** y\n');
+  assert.ok(warnings.some(w => /Couldn't place section: Mystery Section/.test(w)));
 });
 
 test('CONTENT_TEMPLATE.md parses cleanly with spotlight present', () => {
@@ -104,6 +52,32 @@ test('full-issue fixture puts This & That inside spotlight', () => {
   assert.ok(groups.includes('programs'));
   assert.ok(groups.includes('events'));
   assert.ok(groups.includes('thisandthat'));
+  // research carries both a Brief and a Report group
+  const rgroups = issue.sections.research.items.map(i => i.group);
+  assert.ok(rgroups.includes('brief'));
+  assert.ok(rgroups.includes('report'));
+});
+
+test('real contributor sample parses with no warnings and expected counts', () => {
+  _resetIds();
+  const md = readFileSync(new URL('../fixtures/sample-real.md', import.meta.url), 'utf8');
+  const { issue, warnings } = parseMarkdown(md);
+  assert.deepEqual(warnings, []);
+  assert.equal(issue.date, 'July 01, 2026');
+  assert.match(issue.intro, /^Howdy!/);
+  const count = k => issue.sections[k].items.length;
+  assert.equal(count('research'), 3);        // 2 briefs + 1 report
+  assert.equal(count('spotlight'), 4);       // P&O 1, Events 2, Happy Hours (This & That) 1
+  assert.equal(count('events'), 5);          // TAMU 2 + off-campus 3
+  assert.equal(count('opportunities'), 6);   // F&G 2 + Fellowships 2 (dupe group) + Calls 2
+  assert.equal(count('policy'), 6);          // WP 3 + peer 1 + misc 2
+  assert.equal(count('headlines'), 6);       // federal 3 + texas 3
+  // group wiring sanity
+  const rgroups = issue.sections.research.items.map(i => i.group);
+  assert.deepEqual(rgroups.slice().sort(), ['brief', 'brief', 'report']);
+  // duplicate same-name groups merge into one group key
+  const fellows = issue.sections.opportunities.items.filter(i => i.group === 'fellowships');
+  assert.equal(fellows.length, 2);
 });
 
 test('unescapeMd strips backslashes before punctuation', () => {
