@@ -1,9 +1,21 @@
 import { sectionByAlias, groupByAlias, createEmptyIssue } from './model.js';
 
+const FIELD_ALIASES = { metaline: 'meta' };
+
 const KV = (text, key) => {
   const m = text.match(new RegExp('^\\s*' + key + '\\s*:\\s*(.+)$', 'im'));
   return m ? m[1].trim() : '';
 };
+
+export function parseFieldLine(line) {
+  const s = (line || '').trim();
+  if (s.startsWith('#')) return null;
+  const m = s.match(/^\*{0,2}\s*([A-Za-z][A-Za-z &]*?)\s*\*{0,2}\s*:\s*\*{0,2}\s*(.*)$/);
+  if (!m) return null;
+  let key = m[1].toLowerCase().replace(/\s+/g, '');
+  key = FIELD_ALIASES[key] || key;
+  return { key, value: m[2].trim() };
+}
 
 export function splitSections(md) {
   const parts = md.split(/^##\s+/m); // parts[0] is pre-first-header (the "# Title")

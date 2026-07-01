@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd, extractUrl } from '../js/parser.js';
+import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd, extractUrl, parseFieldLine } from '../js/parser.js';
 import { readFileSync } from 'node:fs';
 
 const md = `# ERC Newsletter
@@ -121,4 +121,14 @@ test('extractUrl pulls href from markdown links and passes bare urls', () => {
     extractUrl('[reg](https://z.us/WN\\_cTTl\\#/registration)'),
     'https://z.us/WN_cTTl#/registration');
   assert.equal(extractUrl('https://plain.example'), 'https://plain.example');
+});
+
+test('parseFieldLine handles bold, case, and metaline alias', () => {
+  assert.deepEqual(parseFieldLine('**Title:** Hello'), { key: 'title', value: 'Hello' });
+  assert.deepEqual(parseFieldLine('**title:** Hi'), { key: 'title', value: 'Hi' });
+  assert.deepEqual(parseFieldLine('**Metaline:** Deadline'), { key: 'meta', value: 'Deadline' });
+  assert.deepEqual(parseFieldLine('Authors: A & B'), { key: 'authors', value: 'A & B' });
+  assert.deepEqual(parseFieldLine('**title**: Outside'), { key: 'title', value: 'Outside' });
+  assert.equal(parseFieldLine('Just a sentence, no field.'), null);
+  assert.equal(parseFieldLine('# Heading'), null);
 });
