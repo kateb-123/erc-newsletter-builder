@@ -488,7 +488,10 @@ function renderTriage() {
 
         const subName = document.createElement('span');
         subName.className = 'triage-switch-label';
-        subName.textContent = 'Include “Submit your research” callout';
+        subName.textContent = 'Submit your research callout';
+
+        const switchLine = document.createElement('div');
+        switchLine.className = 'triage-switch-line';
 
         const sw = document.createElement('label');
         sw.className = 'triage-switch';
@@ -512,9 +515,10 @@ function renderTriage() {
           scheduleSave();
         });
 
+        switchLine.appendChild(sw);
+        switchLine.appendChild(stateLabel);
         subRow.appendChild(subName);
-        subRow.appendChild(sw);
-        subRow.appendChild(stateLabel);
+        subRow.appendChild(switchLine);
         sectionsList.appendChild(subRow);
       }
     }

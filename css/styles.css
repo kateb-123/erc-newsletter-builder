@@ -418,9 +418,15 @@ body {
    items, set apart from the content list with spacing. */
 .triage-switch-row {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0 18px 30px;
+}
+
+.triage-switch-line {
+  display: flex;
   align-items: center;
   gap: 10px;
-  margin: 14px 0 18px 30px;
 }
 
 .triage-switch-label {
