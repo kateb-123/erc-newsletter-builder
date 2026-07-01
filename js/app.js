@@ -290,27 +290,6 @@ function renderTriage() {
 
   const issue = state.issue;
 
-  // ── Summary roster ───────────────────────────────────────────────────────
-  if (issue && issue.sections) {
-    const parts = [];
-    for (const reg of SECTION_REGISTRY) {
-      const secData = issue.sections[reg.key];
-      const count = (secData && secData.items) ? secData.items.length : 0;
-      if (count === 0) continue;
-      // Build a human-friendly label+count phrase
-      const label = reg.navLabel || reg.label;
-      parts.push(`${count} ${label}`);
-    }
-    const summary = document.createElement('p');
-    summary.className = 'triage-summary';
-    if (parts.length > 0) {
-      summary.textContent = 'This issue: ' + parts.join(' · ') + '.';
-    } else {
-      summary.textContent = 'No sections with content found in this file.';
-    }
-    container.appendChild(summary);
-  }
-
   // ── Meta fields ──────────────────────────────────────────────────────────
   const metaSection = document.createElement('div');
   metaSection.className = 'triage-meta';
@@ -387,10 +366,10 @@ function renderTriage() {
 
     checkLabel.appendChild(checkbox);
 
-    // Section name
+    // Section name — with item count (e.g. "ERC Spotlight (2)") when non-empty
     const nameSpan = document.createElement('span');
     nameSpan.className = 'triage-section-name';
-    nameSpan.textContent = reg.label;
+    nameSpan.textContent = isEmpty ? reg.label : `${reg.label} (${items.length})`;
     checkLabel.appendChild(nameSpan);
 
     row.appendChild(checkLabel);
@@ -507,13 +486,13 @@ function renderTriage() {
 
             evRow.appendChild(titleSpan);
 
-            // Featured checkbox — events section only
+            // Featured toggle — events section only. Compact, aligned with the
+            // reorder arrows; the "what it does" note is a hover tooltip so it
+            // doesn't repeat on every row.
             if (reg.key === 'events') {
-              const featWrapper = document.createElement('div');
-              featWrapper.className = 'triage-featured-wrapper';
-
               const featLabel = document.createElement('label');
               featLabel.className = 'triage-featured-label';
+              featLabel.title = 'Pins this event to the top under a Featured heading — choose one.';
 
               const featCb = document.createElement('input');
               featCb.type = 'checkbox';
@@ -530,16 +509,8 @@ function renderTriage() {
               });
 
               featLabel.appendChild(featCb);
-              const featLabelText = document.createTextNode(' Featured event');
-              featLabel.appendChild(featLabelText);
-              featWrapper.appendChild(featLabel);
-
-              const featHelper = document.createElement('span');
-              featHelper.className = 'triage-featured-helper';
-              featHelper.textContent = 'Pins this event to the top under a Featured heading — choose one.';
-              featWrapper.appendChild(featHelper);
-
-              evRow.appendChild(featWrapper);
+              featLabel.appendChild(document.createTextNode(' Featured'));
+              evRow.appendChild(featLabel);
             }
 
             evRow.appendChild(posSpan);
