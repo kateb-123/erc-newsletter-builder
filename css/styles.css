@@ -463,7 +463,7 @@ body {
 
 .triage-group-label {
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -506,7 +506,7 @@ body {
 
 .triage-event-title {
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   color: #202020;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -536,7 +536,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: 13px;
   color: #404040;
   cursor: pointer;
   white-space: nowrap;
@@ -560,38 +560,34 @@ body {
   padding-top: 3px;
 }
 
+/* Reorder arrows — always visible but quiet, so it reads as reorderable at a
+   glance; they darken on hover. */
+.triage-reorder-group {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .triage-reorder-btn {
-  background: #e8e8e8;
-  border: none;
-  border-radius: 3px;
+  background: none;
+  border: 0;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
-  padding: 3px 8px;
-  color: #404040;
-  transition: background 0.12s;
-  line-height: 1.3;
+  font-size: 15px;
+  padding: 3px 6px;
+  color: #b3a9a9;
+  transition: color 0.12s, background 0.12s;
+  line-height: 1;
 }
 
 .triage-reorder-btn:not(:disabled):hover {
-  background: #d0d0d0;
+  color: #500000;
+  background: #f1ecea;
 }
 
 .triage-reorder-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.28;
   cursor: not-allowed;
-}
-
-/* Reorder arrows stay quiet until you hover (or keyboard-focus) the row. */
-.triage-reorder-group {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-.triage-event-row:hover .triage-reorder-group,
-.triage-event-row:focus-within .triage-reorder-group {
-  opacity: 1;
 }
 
 /* --- Edit step ("Preview & Edit") ------------------------- */
@@ -713,10 +709,10 @@ body {
 .edit-card-group { margin-bottom: 10px; }
 .edit-card-sublabel {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b6b6b;
+  color: #595959;
   margin-bottom: 3px;
 }
 .edit-card-input,
