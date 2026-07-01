@@ -30,6 +30,10 @@ export function splitSections(md) {
 
 export { KV };
 
+export function unescapeMd(s) {
+  return (s || '').replace(/\\([^A-Za-z0-9\s])/g, '$1');
+}
+
 let _idCounter = 0;
 export function _resetIds() { _idCounter = 0; } // test helper
 

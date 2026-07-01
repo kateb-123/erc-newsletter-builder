@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { splitSections, parseItems, parseMarkdown, _resetIds } from '../js/parser.js';
+import { splitSections, parseItems, parseMarkdown, _resetIds, unescapeMd } from '../js/parser.js';
 import { readFileSync } from 'node:fs';
 
 const md = `# ERC Newsletter
@@ -104,4 +104,12 @@ test('full-issue fixture puts This & That inside spotlight', () => {
   assert.ok(groups.includes('programs'));
   assert.ok(groups.includes('events'));
   assert.ok(groups.includes('thisandthat'));
+});
+
+test('unescapeMd strips backslashes before punctuation', () => {
+  assert.equal(unescapeMd('Texas A\\&M'), 'Texas A&M');
+  assert.equal(unescapeMd('P\\&O \\#1'), 'P&O #1');
+  assert.equal(unescapeMd('Howdy\\!'), 'Howdy!');
+  assert.equal(unescapeMd('merc\\_pubs'), 'merc_pubs');
+  assert.equal(unescapeMd('nothing to do'), 'nothing to do');
 });
