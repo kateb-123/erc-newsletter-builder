@@ -670,15 +670,8 @@ body {
 .edit-card-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.edit-card-label {
-  font-weight: 600;
-  color: #500000;
-  font-size: 0.9rem;
-  line-height: 1.3;
+  justify-content: flex-end;
+  margin-bottom: 2px;
 }
 .edit-card-close {
   background: none;

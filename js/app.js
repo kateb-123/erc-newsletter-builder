@@ -763,20 +763,6 @@ function humanize(key) {
 }
 
 /**
- * Human-friendly card label: "Section · Item title" (falls back to the item
- * key, then the section) — e.g. "ERC Research · Teacher Retention…".
- * @param {Array<{section:string,item?:string,field:string}>} refs
- * @returns {string}
- */
-function itemCardLabel(refs) {
-  const { section, item } = refs[0];
-  const titleRef = refs.find((r) => r.field === 'title');
-  const title = titleRef ? (getField(state.issue, titleRef) || '').trim() : '';
-  const right = title || (item ? humanize(item) : '');
-  return right ? `${humanize(section)} · ${right}` : humanize(section);
-}
-
-/**
  * Open (or focus) an editor card for a whole item in the persistent edit
  * column. Multiple cards may be open at once; they stack in open-order. Typing
  * updates the preview live; Save commits + closes the card.
@@ -803,19 +789,16 @@ function openItemEditor(refs, iframe) {
   card.className = 'edit-card';
   card.setAttribute('role', 'group');
 
-  // Header: friendly label + close (× behaves like Save — edits are live).
+  // Header: just a close control (× behaves like Save — edits are live). No
+  // title label — the fields below make it clear which item you're editing.
   const header = document.createElement('div');
   header.className = 'edit-card-header';
-  const labelEl = document.createElement('span');
-  labelEl.className = 'edit-card-label';
-  labelEl.textContent = itemCardLabel(refs);
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'edit-card-close';
   closeBtn.textContent = '✕';
   closeBtn.setAttribute('aria-label', 'Close editor');
   closeBtn.addEventListener('click', () => closeCard(key));
-  header.appendChild(labelEl);
   header.appendChild(closeBtn);
   card.appendChild(header);
 
@@ -834,7 +817,7 @@ function openItemEditor(refs, iframe) {
     if (isLong) {
       inputEl = document.createElement('textarea');
       inputEl.className = 'edit-card-textarea';
-      inputEl.rows = 4;
+      inputEl.rows = 7;
     } else {
       inputEl = document.createElement('input');
       inputEl.type = 'text';
@@ -843,8 +826,6 @@ function openItemEditor(refs, iframe) {
     inputEl.value = getField(state.issue, ref) ?? '';
     inputEl.addEventListener('input', () => {
       setField(state.issue, ref, inputEl.value);
-      // Keep the card label live if the title changes.
-      if (ref.field === 'title') labelEl.textContent = itemCardLabel(refs);
       scheduleSave();
       debouncedPreview();
     });
@@ -867,7 +848,6 @@ function openItemEditor(refs, iframe) {
       inputEl.value = original;
       setField(state.issue, ref, original);
     }
-    labelEl.textContent = itemCardLabel(refs);
     scheduleSave();
     refreshEditIframe(iframe);
   });
