@@ -414,17 +414,23 @@ body {
   background: #faf8f7;
 }
 
-/* Sub-option beneath a section's items (e.g. the Submit callout toggle) —
-   indented to line up under the item titles, with a little breathing room. */
+/* Submit-callout opt-in — styled as a distinct SETTING chip beneath the
+   Featured Research items, set apart from the content list so it doesn't read
+   as just another item. */
 .triage-subtoggle-row {
   display: flex;
+  width: fit-content;
   align-items: center;
-  padding: 12px 8px 2px 30px;
+  margin: 14px 0 18px 30px;
+  padding: 9px 14px;
+  background: #f5f2f0;
+  border: 1px solid #e7e1dd;
+  border-radius: 8px;
 }
 
 .triage-subtoggle-row .triage-section-name {
   font-size: 13px;
-  color: #555;
+  color: #4a4a4a;
 }
 
 .triage-toggle-label {
