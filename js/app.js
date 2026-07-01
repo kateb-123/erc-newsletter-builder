@@ -407,37 +407,50 @@ function renderTriage() {
       sectionsList.appendChild(subRow);
     }
 
-    // Events and Spotlight: grouped display with featured checkbox (events) or plain grouped list (spotlight)
-    const isGroupedSection = (reg.key === 'events' || reg.key === 'spotlight') && items.length > 0 && reg.groups && reg.groups.length > 0;
-    if (isGroupedSection) {
+    // Every populated section lists its items with reorder controls: grouped
+    // (under group labels) where the section defines groups, flat otherwise
+    // (e.g. Featured Research). Only Events also shows the featured toggle.
+    if (items.length > 0) {
       const sectionContainer = document.createElement('div');
       sectionContainer.className = 'triage-grouped-section';
 
-      /**
-       * Render all groups for this section into sectionContainer.
-       * For 'events': shows featured checkbox + reorder buttons per item.
-       * For 'spotlight': shows reorder buttons per item, no featured control.
-       */
-      const renderGroupedSection = () => {
+      const renderSectionItems = () => {
         sectionContainer.innerHTML = '';
         const secItems = (issue && issue.sections && issue.sections[reg.key] && issue.sections[reg.key].items) || [];
+        const hasGroups = reg.groups && reg.groups.length > 0;
 
-        for (const grp of reg.groups) {
-          // Items belonging to this group (in their current order)
-          const grpItems = secItems.filter((it) => it.group === grp.key);
-          if (grpItems.length === 0) continue;
+        // Bucket items for display: one bucket per non-empty group (labeled),
+        // then a trailing unlabeled bucket for any items that didn't match a
+        // group so nothing is silently dropped. Flat sections = one bucket.
+        const buckets = [];
+        if (hasGroups) {
+          const claimed = new Set();
+          for (const grp of reg.groups) {
+            const grpItems = secItems.filter((it) => it.group === grp.key);
+            if (grpItems.length === 0) continue;
+            grpItems.forEach((it) => claimed.add(it));
+            buckets.push({ label: grp.label, items: grpItems });
+          }
+          const leftover = secItems.filter((it) => !claimed.has(it));
+          if (leftover.length > 0) buckets.push({ label: null, items: leftover });
+        } else {
+          buckets.push({ label: null, items: secItems.slice() });
+        }
 
-          // Group label
-          const grpLabel = document.createElement('div');
-          grpLabel.className = 'triage-group-label';
-          grpLabel.textContent = grp.label; // registry constant — safe as textContent
-          sectionContainer.appendChild(grpLabel);
+        for (const bucket of buckets) {
+          if (bucket.label) {
+            const grpLabel = document.createElement('div');
+            grpLabel.className = 'triage-group-label';
+            grpLabel.textContent = bucket.label; // registry constant — safe as textContent
+            sectionContainer.appendChild(grpLabel);
+          }
 
-          for (const item of grpItems) {
-            // Compute index within the full section items array (for reorder swaps)
+          const bucketItems = bucket.items;
+          for (const item of bucketItems) {
+            // Index within the full section array (for reorder swaps)
             const secIdx = secItems.indexOf(item);
-            // Compute position within this group (for position label + button disable)
-            const grpIdx = grpItems.indexOf(item);
+            // Position within this bucket (for the position label + button disable)
+            const grpIdx = bucketItems.indexOf(item);
 
             const evRow = document.createElement('div');
             evRow.className = 'triage-event-row';
@@ -450,20 +463,20 @@ function renderTriage() {
             // Position indicator (e.g. "2 of 5")
             const posSpan = document.createElement('span');
             posSpan.className = 'triage-event-pos';
-            posSpan.textContent = `${grpIdx + 1} of ${grpItems.length}`;
+            posSpan.textContent = `${grpIdx + 1} of ${bucketItems.length}`;
 
             // Up button
             const upBtn = document.createElement('button');
             upBtn.type = 'button';
             upBtn.className = 'triage-reorder-btn';
             upBtn.textContent = '↑';
-            upBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" up (${grpIdx + 1} of ${grpItems.length})`);
+            upBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" up (${grpIdx + 1} of ${bucketItems.length})`);
             upBtn.disabled = grpIdx === 0;
             upBtn.addEventListener('click', () => {
               const allItems = issue.sections[reg.key].items;
               if (secIdx > 0) {
                 [allItems[secIdx - 1], allItems[secIdx]] = [allItems[secIdx], allItems[secIdx - 1]];
-                renderGroupedSection();
+                renderSectionItems();
                 scheduleSave();
               }
             });
@@ -473,13 +486,13 @@ function renderTriage() {
             downBtn.type = 'button';
             downBtn.className = 'triage-reorder-btn';
             downBtn.textContent = '↓';
-            downBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" down (${grpIdx + 1} of ${grpItems.length})`);
-            downBtn.disabled = grpIdx === grpItems.length - 1;
+            downBtn.setAttribute('aria-label', `Move "${(item.fields && item.fields.title) || 'item'}" down (${grpIdx + 1} of ${bucketItems.length})`);
+            downBtn.disabled = grpIdx === bucketItems.length - 1;
             downBtn.addEventListener('click', () => {
               const allItems = issue.sections[reg.key].items;
               if (secIdx < allItems.length - 1) {
                 [allItems[secIdx], allItems[secIdx + 1]] = [allItems[secIdx + 1], allItems[secIdx]];
-                renderGroupedSection();
+                renderSectionItems();
                 scheduleSave();
               }
             });
@@ -504,7 +517,7 @@ function renderTriage() {
                 // Exclusive: clear all, then set if newly checked
                 evItems.forEach((ev) => { ev.featured = false; });
                 if (!wasFeatured) item.featured = true;
-                renderGroupedSection();
+                renderSectionItems();
                 scheduleSave();
               });
 
@@ -521,7 +534,7 @@ function renderTriage() {
         }
       };
 
-      renderGroupedSection();
+      renderSectionItems();
       sectionsList.appendChild(sectionContainer);
     }
   }
