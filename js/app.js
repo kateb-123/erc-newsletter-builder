@@ -369,54 +369,21 @@ function renderTriage() {
     const secData = issue && issue.sections && issue.sections[reg.key];
     const items = (secData && secData.items) || [];
     const isEmpty = items.length === 0;
-    const isEnabled = secData ? secData.enabled : false;
-
     const row = document.createElement('div');
     row.className = 'triage-section-row';
 
-    // Checkbox
-    const checkLabel = document.createElement('label');
-    checkLabel.className = 'triage-toggle-label';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'triage-toggle';
-
-    if (isEmpty) {
-      // Empty-section lock: force off + disable
-      checkbox.checked = false;
-      checkbox.disabled = true;
-      if (secData) secData.enabled = false;
-    } else {
-      checkbox.checked = isEnabled;
-      // Confirm-on-hide: ask before unchecking a populated section
-      checkbox.addEventListener('change', () => {
-        if (!checkbox.checked && items.length > 0) {
-          const label = reg.navLabel || reg.label;
-          const confirmed = window.confirm(
-            `Hide ${label}? This removes ${items.length} item${items.length === 1 ? '' : 's'} from this issue.`
-          );
-          if (!confirmed) {
-            // Restore the checked state
-            checkbox.checked = true;
-            return;
-          }
-        }
-        if (secData) secData.enabled = checkbox.checked;
-        scheduleSave();
-      });
-    }
-
-    checkLabel.appendChild(checkbox);
+    // No toggle: every populated section is always included; empty sections
+    // auto-hide (nothing to render).
+    if (secData) secData.enabled = !isEmpty;
 
     // Section name — with item count (e.g. "ERC Spotlight (2)") when non-empty
     const nameSpan = document.createElement('span');
     nameSpan.className = 'triage-section-name';
     nameSpan.textContent = isEmpty ? reg.label : `${reg.label} (${items.length})`;
-    checkLabel.appendChild(nameSpan);
+    if (isEmpty) nameSpan.classList.add('triage-section-name--empty');
+    row.appendChild(nameSpan);
 
-    row.appendChild(checkLabel);
-
-    // Note for empty/locked sections
+    // Note for empty sections
     if (isEmpty) {
       const note = document.createElement('span');
       note.className = 'triage-section-note';
