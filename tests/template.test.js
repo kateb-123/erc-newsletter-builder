@@ -18,7 +18,7 @@ test('render includes date, fonts, and a file-tab section header', () => {
 test('disabled/empty section is omitted from output', () => {
   const issue = issueOf('sparse-issue.md');
   const html = renderNewsletter(issue);
-  assert.ok(!/ERC Happy Hour/i.test(html)); // no spotlight/happy-hour group in sparse fixture
+  assert.ok(!/This &amp; That/i.test(html)); // no spotlight/This & That group in sparse fixture
 });
 
 test('Submit callout shows by default and is omitted when showSubmit is false', () => {
@@ -80,7 +80,7 @@ test('spotlight renders between research and events with all three groups', () =
   const iEvents = html.indexOf('Upcoming Events');
   assert.ok(iResearch < iSpot && iSpot < iEvents, 'spotlight sits between research and events');
   assert.match(html, /Programs &amp; Opportunities/);
-  assert.match(html, /ERC HAPPY HOUR|ERC Happy Hour/i);
+  assert.match(html, /This &amp; That/i);
 });
 
 test('spotlight is a jump-nav target', () => {

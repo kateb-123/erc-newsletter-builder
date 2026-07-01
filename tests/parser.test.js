@@ -96,12 +96,12 @@ test('CONTENT_TEMPLATE.md parses cleanly with spotlight present', () => {
     assert.ok(issue.sections[key].items.length > 0, `${key} should have items`);
 });
 
-test('full-issue fixture puts Happy Hour inside spotlight', () => {
+test('full-issue fixture puts This & That inside spotlight', () => {
   _resetIds();
   const md = readFileSync(new URL('../fixtures/full-issue.md', import.meta.url), 'utf8');
   const { issue } = parseMarkdown(md);
   const groups = issue.sections.spotlight.items.map(i => i.group);
   assert.ok(groups.includes('programs'));
   assert.ok(groups.includes('events'));
-  assert.ok(groups.includes('happyhour'));
+  assert.ok(groups.includes('thisandthat'));
 });

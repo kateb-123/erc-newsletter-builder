@@ -283,9 +283,8 @@ function buildGroupedDigest(secReg, sec, editable = false) {
 
 /**
  * Builds the ERC Spotlight section (kind: spotlight).
- * Groups: programs, events, happyhour — in registry order, only groups present in items.
- * programs/events: bold title link + meta line + optional summary.
- * happyhour: intro line + bulleted date | time | location per item.
+ * Groups: programs, events, thisandthat — in registry order, only groups present in items.
+ * All groups: bold title link + meta (or date | time | location) + optional summary.
  */
 function buildSpotlight(secReg, sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
@@ -320,44 +319,9 @@ function buildSpotlight(secReg, sec, editable = false) {
     rows += eyebrow(groupLabel, firstGroup);
     firstGroup = false;
 
-    if (gk === 'happyhour') {
-      // Happy Hour: intro line + bulleted date | time | location
-      rows += `<tr><td style="padding: 7px 24px 18px 40px;">
-<p style="margin:0 0 9px; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;">Join us for our monthly happy hour &#8212; no RSVP required, all are welcome.</p>
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:100%;"><tbody>`;
-
-      items.forEach((item, i) => {
-        const { fields } = item;
-        const isLast = i === items.length - 1;
-        const bottomPad = isLast ? '0' : '7px';
-        const dateParts = [fields.date, fields.time, fields.location].filter(Boolean);
-        const dateText = dateParts.length > 1 ? dateParts.join(' | ') : (fields.date || fields.title || '');
-        // Build the bullet text cell with optional editable attributes on each sub-field
-        const dateSpan = fields.date
-          ? `<span${editAttrs('spotlight', item.id, 'date', editable)}>${esc(fields.date)}</span>`
-          : '';
-        const timeSpan = fields.time
-          ? `<span${editAttrs('spotlight', item.id, 'time', editable)}>${esc(fields.time)}</span>`
-          : '';
-        const locationSpan = fields.location
-          ? `<span${editAttrs('spotlight', item.id, 'location', editable)}>${esc(fields.location)}</span>`
-          : '';
-        // When editable, render individual spans so each sub-field is clickable;
-        // when not editable, render the plain joined dateText (safe for export).
-        const bulletContent = editable
-          ? [dateSpan, timeSpan, locationSpan].filter(Boolean).join(' | ')
-          : esc(dateText);
-        rows += `<tr>
-<td style="vertical-align:top; width:14px; padding:0 8px ${bottomPad} 0;"><span style="font-family:${FONT_BODY}; font-size:14px; line-height:1.4; color:#404040;">&#8226;</span></td>
-<td style="vertical-align:top; padding:0 0 ${bottomPad} 0;"><p style="margin:0; line-height:1.4; font-family:${FONT_BODY}; font-size:14px; color:#404040;">${bulletContent}</p></td>
-</tr>`;
-      });
-
-      rows += `</tbody></table>
-</td></tr>`;
-    } else {
-      // programs / events groups: bold title link + meta + optional summary
-      items.forEach((item, i) => {
+    // All spotlight groups render the same: bold title link + meta (or
+    // date | time | location) + optional summary.
+    items.forEach((item, i) => {
         const { fields } = item;
         const topPad = i === 0 ? '7px' : '14px';
         const titleLink = fields.url
@@ -399,7 +363,6 @@ ${summaryLine}
           rows += `<tr><td style="padding: 14px 24px 0 40px;"><div style="border-top: 1px solid #e6e2dd; line-height: 1px; font-size: 1px;">&nbsp;</div></td></tr>`;
         }
       });
-    }
   }
 
   // Closing bottom padding

@@ -39,7 +39,7 @@ location: EDCT 318
 url: https://erc.tamu.edu/events/in-the-works-lopez
 
 ### Spotlight Item
-group: ERC Happy Hour
+group: This & That
 title: ERC Happy Hour
 date: Wed, June 25
 time: 5:00 PM

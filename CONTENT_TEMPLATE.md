@@ -14,7 +14,7 @@ HOW TO USE THIS FILE
 
 3. group: tells the builder which sub-group an item belongs to.
    Valid group: values per section:
-     ERC Spotlight      → Programs & Opportunities | Events | ERC Happy Hour
+     ERC Spotlight      → Programs & Opportunities | Events | This & That
      Upcoming Events    → Featured | Texas A&M | Online & Off-Campus
      Opportunities      → Funding & Grants | Fellowships & Training | Calls for Proposals | Miscellaneous
      New Education Policy Research → Working Papers | Peer-Reviewed | Miscellaneous
@@ -57,7 +57,7 @@ summary: [Hook question. Key finding with numbers. Implication.]
 url: https://[link-to-pdf-or-abstract]
 
 ## ERC Spotlight
-<!-- add/remove blocks — one ### per item; group must be Programs & Opportunities, Events, or ERC Happy Hour -->
+<!-- add/remove blocks — one ### per item; group must be Programs & Opportunities, Events, or This & That -->
 
 ### Spotlight Item
 group: Programs & Opportunities
@@ -75,11 +75,11 @@ location: [Building Room or Zoom link description]
 url: https://[details-or-RSVP-link]
 
 ### Spotlight Item
-group: ERC Happy Hour
-title: ERC Happy Hour
-date: [Month DD, YYYY]
-time: [H:MM PM CT]
-location: [Venue name]
+group: This & That
+title: [Anything else worth a mention — e.g. "ERC Happy Hour" or a quick note]
+meta: [Optional detail — e.g. date/time/venue, or leave off]
+summary: [Optional 1–2 sentence blurb.]
+url: https://[optional-link]
 
 ## Upcoming Events
 <!-- add/remove blocks — one ### per event; mark exactly ONE with featured: yes -->
