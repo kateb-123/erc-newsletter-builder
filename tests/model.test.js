@@ -27,14 +27,28 @@ test('groupByAlias maps event groups', () => {
   assert.equal(groupByAlias('events', 'Featured'), 'featured');
 });
 
-test('spotlight groups are programs, events, happyhour in order', () => {
+test('spotlight groups are programs, events, thisandthat in order', () => {
   const sp = SECTION_REGISTRY.find(s => s.key === 'spotlight');
   assert.equal(sp.kind, 'spotlight');
-  assert.deepEqual(sp.groups.map(g => g.key), ['programs','events','happyhour']);
+  assert.deepEqual(sp.groups.map(g => g.key), ['programs','events','thisandthat']);
 });
 
 test('spotlight group aliases resolve', () => {
   assert.equal(groupByAlias('spotlight', 'Programs & Opportunities'), 'programs');
   assert.equal(groupByAlias('spotlight', 'Events'), 'events');
-  assert.equal(groupByAlias('spotlight', 'ERC Happy Hour'), 'happyhour');
+  assert.equal(groupByAlias('spotlight', 'This & That'), 'thisandthat');
+  // legacy alias still resolves so old content keeps parsing
+  assert.equal(groupByAlias('spotlight', 'ERC Happy Hour'), 'thisandthat');
+});
+
+test('research section has brief and report groups in order', () => {
+  const r = SECTION_REGISTRY.find(s => s.key === 'research');
+  assert.deepEqual(r.groups.map(g => g.key), ['brief', 'report']);
+});
+
+test('new group aliases resolve', () => {
+  assert.equal(groupByAlias('research', 'Research Brief'), 'brief');
+  assert.equal(groupByAlias('research', 'Report'), 'report');
+  assert.equal(groupByAlias('events', 'Off-Campus & Online'), 'offcampus');
+  assert.equal(groupByAlias('spotlight', 'ERC Happy Hours'), 'thisandthat');
 });

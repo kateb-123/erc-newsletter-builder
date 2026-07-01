@@ -2,20 +2,24 @@ const norm = s => (s || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9
 
 export const SECTION_REGISTRY = [
   { key: 'research', label: 'Featured Research', navLabel: 'ERC Research', kind: 'briefs',
-    aliases: ['featured research', 'featured erc research', 'research briefs', 'erc research'], groups: [] },
+    aliases: ['featured research', 'featured erc research', 'research briefs', 'erc research'],
+    groups: [
+      { key: 'brief',  label: 'Research Brief', aliases: ['research brief', 'research briefs', 'brief', 'briefs'] },
+      { key: 'report', label: 'Report', aliases: ['report', 'reports'] },
+    ] },
   { key: 'spotlight', label: 'ERC Spotlight', navLabel: 'Spotlight', kind: 'spotlight',
     aliases: ['erc spotlight', 'spotlight'],
     groups: [
       { key: 'programs', label: 'Programs & Opportunities', aliases: ['programs and opportunities', 'programs', 'programs and ops'] },
       { key: 'events', label: 'Events', aliases: ['events', 'erc events'] },
-      { key: 'happyhour', label: 'ERC Happy Hour', aliases: ['erc happy hour', 'happy hour'] },
+      { key: 'thisandthat', label: 'This & That', aliases: ['this and that', 'this that', 'misc', 'miscellaneous', 'other', 'erc happy hour', 'erc happy hours', 'happy hour', 'happy hours'] },
     ] },
   { key: 'events', label: 'Upcoming Events', navLabel: 'Events', kind: 'grouped-list',
     aliases: ['upcoming events', 'events', 'events and webinars', 'am events'],
     groups: [
       { key: 'featured', label: 'Featured Events', aliases: ['featured', 'featured events'] },
       { key: 'tamu', label: 'Texas A&M', aliases: ['texas am', 'tamu', 'am', 'texas a and m', 'texas a&m'] },
-      { key: 'offcampus', label: 'Online & Off-Campus', aliases: ['online and offcampus', 'offcampus', 'webinars and offcampus', 'online'] },
+      { key: 'offcampus', label: 'Online & Off-Campus', aliases: ['online and offcampus', 'offcampus and online', 'offcampus', 'webinars and offcampus', 'online'] },
     ] },
   { key: 'opportunities', label: 'Opportunities', navLabel: 'Opportunities', kind: 'grouped-list',
     aliases: ['opportunities'],
