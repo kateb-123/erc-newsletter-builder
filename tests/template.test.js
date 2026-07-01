@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { renderNewsletter, renderProse } from '../js/template.js';
 import { parseMarkdown, _resetIds } from '../js/parser.js';
+import { createEmptyIssue } from '../js/model.js';
 
 const issueOf = file => { _resetIds();
   return parseMarkdown(readFileSync(new URL(`../fixtures/${file}`, import.meta.url), 'utf8')).issue; };
@@ -108,4 +109,21 @@ test('export output has no edit hooks; editable output does', () => {
   const i = issueOf('full-issue.md');
   assert.ok(!/data-edit-/.test(renderNewsletter(i)));            // default = clean export
   assert.match(renderNewsletter(i, { editable: true }), /data-edit-field="title"/);
+});
+
+test('research renders Brief and Report as separate labeled subgroups', () => {
+  const issue = createEmptyIssue();
+  issue.sections.research.enabled = true;
+  issue.sections.research.items = [
+    { id: 'itm_1', group: 'brief',  fields: { title: 'B-One', summary: 'x' } },
+    { id: 'itm_2', group: 'report', fields: { title: 'R-One', summary: 'y' } },
+  ];
+  const html = renderNewsletter(issue);
+  const iBriefLabel = html.indexOf('Research Brief');
+  const iReportLabel = html.indexOf('Report');
+  const iBOne = html.indexOf('B-One');
+  const iROne = html.indexOf('R-One');
+  assert.ok(iBriefLabel !== -1 && iReportLabel !== -1, 'both group labels present');
+  assert.ok(iBriefLabel < iBOne && iBOne < iReportLabel, 'Brief group precedes Report group');
+  assert.ok(iReportLabel < iROne, 'Report label precedes its item');
 });

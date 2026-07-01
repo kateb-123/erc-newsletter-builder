@@ -85,31 +85,43 @@ const SEE_MORE = `<tr><td style="padding: 10px 24px 22px 24px; text-align: right
 
 /**
  * Builds the ERC Research section (kind: briefs).
- * Groups items under "Research Briefs" eyebrow; followed by compact Submit callout.
+ * Groups items under their research group eyebrow (Research Brief, then Report);
+ * followed by compact Submit callout.
  */
 function buildBriefs(sec, editable = false) {
   if (!sec.enabled || !sec.items.length) return '';
   let rows = sectionHeader('research', 'ERC Research');
 
-  // Single group label
-  rows += eyebrow('Research Briefs', true);
+  const researchReg = SECTION_REGISTRY.find(s => s.key === 'research');
+  const groupOrder = researchReg.groups.map(g => g.key);
+  const byGroup = {};
+  for (const item of sec.items) {
+    const gk = groupOrder.includes(item.group) ? item.group : 'brief';
+    (byGroup[gk] = byGroup[gk] || []).push(item);
+  }
+  const present = groupOrder.filter(gk => byGroup[gk]);
 
-  sec.items.forEach((item, i) => {
-    const { fields } = item;
-    const titleLink = fields.url
-      ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</a>`
-      : `<span${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</span>`;
-    const topPad = i === 0 ? '13px' : '16px';
-    rows += `
+  let firstGroup = true;
+  for (const gk of present) {
+    const groupDef = researchReg.groups.find(g => g.key === gk);
+    rows += eyebrow(groupDef.label, firstGroup);
+    firstGroup = false;
+    const items = byGroup[gk];
+    items.forEach((item, i) => {
+      const { fields } = item;
+      const titleLink = fields.url
+        ? `<a href="${esc(fields.url)}" target="_blank" rel="noopener" style="color:#202020;text-decoration:none;"${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</a>`
+        : `<span${editAttrs('research', item.id, 'title', editable)}>${esc(fields.title)}</span>`;
+      const topPad = i === 0 ? '13px' : '16px';
+      rows += `
 <tr><td style="padding: ${topPad} 24px 0 40px;">
 <p style="margin:0 0 4px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 16px; font-weight: 700; color: #202020;">${titleLink}</p>
 ${fields.authors ? `<p style="margin:0 0 8px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs('research', item.id, 'authors', editable)}>${esc(fields.authors)}</p>` : ''}
 ${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('research', item.id, 'summary', editable)}>${renderProse(fields.summary)}</p>` : ''}
 </td></tr>`;
-    if (i < sec.items.length - 1) {
-      rows += DIVIDER;
-    }
-  });
+      if (i < items.length - 1) rows += DIVIDER;
+    });
+  }
 
   // Submit callout — optional, toggled per issue in Triage (default on).
   if (sec.showSubmit !== false) {
