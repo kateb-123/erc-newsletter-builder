@@ -97,6 +97,12 @@ test('extractUrl pulls href from markdown links and passes bare urls', () => {
   assert.equal(extractUrl('https://plain.example'), 'https://plain.example');
 });
 
+test('extractUrl keeps trailing parenthesis in the URL (e.g. Wikipedia links)', () => {
+  assert.equal(
+    extractUrl('[t](https://en.wikipedia.org/wiki/Cape_Verde_(country))'),
+    'https://en.wikipedia.org/wiki/Cape_Verde_(country)');
+});
+
 test('parseFieldLine handles bold, case, and metaline alias', () => {
   assert.deepEqual(parseFieldLine('**Title:** Hello'), { key: 'title', value: 'Hello' });
   assert.deepEqual(parseFieldLine('**title:** Hi'), { key: 'title', value: 'Hi' });

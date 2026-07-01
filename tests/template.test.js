@@ -38,6 +38,19 @@ test('renderProse linkifies markdown links and escapes the rest', () => {
   assert.doesNotMatch(html, /data-edit/);
 });
 
+test('renderProse keeps trailing parenthesis in a link href (e.g. Wikipedia links)', () => {
+  const html = renderProse('See [Cape Verde](https://en.wikipedia.org/wiki/Cape_Verde_(country)) today.');
+  assert.ok(html.includes('href="https://en.wikipedia.org/wiki/Cape_Verde_(country)"'));
+  assert.ok(!html.includes('</a>)'), 'no dangling ) leaking into body text after the link');
+});
+
+test('renderProse only emits an anchor for safe URL schemes; unsafe schemes render as plain text', () => {
+  const html = renderProse('Click [here](javascript:alert(1)) now');
+  assert.ok(!html.includes('<a '), 'should not emit an anchor for a javascript: href');
+  assert.ok(!html.includes('javascript:'), 'should not leak the javascript: scheme into output');
+  assert.ok(html.includes('here'), 'label text should still render');
+});
+
 test('featured event renders under a FEATURED eyebrow', () => {
   // New grammar has no featured marker in the doc — featured is chosen in the app.
   const issue = issueOf('full-issue.md');
@@ -114,6 +127,17 @@ test('export output has no edit hooks; editable output does', () => {
   const i = issueOf('full-issue.md');
   assert.ok(!/data-edit-/.test(renderNewsletter(i)));            // default = clean export
   assert.match(renderNewsletter(i, { editable: true }), /data-edit-field="title"/);
+});
+
+test('ungrouped research item falls back under the Research Brief group', () => {
+  const issue = createEmptyIssue();
+  issue.sections.research.enabled = true;
+  issue.sections.research.items = [
+    { id: 'itm_x', group: '', fields: { title: 'Untagged', summary: 's' } },
+  ];
+  const html = renderNewsletter(issue);
+  assert.ok(html.includes('Research Brief'), 'expected the Research Brief eyebrow label');
+  assert.ok(html.includes('Untagged'), 'expected the ungrouped item title to render');
 });
 
 test('research renders Brief and Report as separate labeled subgroups', () => {

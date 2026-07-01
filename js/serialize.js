@@ -15,6 +15,9 @@ const FIELD_LABEL = {
  * precedes its items and the output re-parses to the same shape.
  */
 export function issueToMarkdown(issue) {
+  // Intentionally omit header_image_url and item.featured — the new grammar has no
+  // markers for them (header defaults in the template; featured is chosen in the app's
+  // Outline step).
   const out = [
     '# ERC Newsletter', '',
     `date: ${issue.date || ''}`, '',

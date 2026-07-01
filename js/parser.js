@@ -18,7 +18,7 @@ export function unescapeMd(s) {
 
 export function extractUrl(value) {
   const v = (value || '').trim();
-  const m = v.match(/\]\(([^)]+)\)/);
+  const m = v.match(/\]\((.+)\)/);
   return unescapeMd(m ? m[1] : v).trim();
 }
 

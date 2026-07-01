@@ -20,13 +20,19 @@ export function esc(s) {
  * Escapes all text, converting [label](href) markdown links into a maroon
  * underlined <a target="_blank" rel="noopener">. No data-edit-* attributes.
  */
+const SAFE_HREF_SCHEME = /^(https?:|mailto:|#|\/)/i;
+
 export function renderProse(text) {
   if (!text) return '';
-  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const re = /\[([^\]]+)\]\(((?:[^()]|\([^()]*\))*)\)/g;
   let out = '', last = 0, m;
   while ((m = re.exec(text))) {
     out += esc(text.slice(last, m.index));
-    out += `<a href="${esc(m[2])}" target="_blank" rel="noopener" style="color: #500000; text-decoration: underline;">${esc(m[1])}</a>`;
+    if (SAFE_HREF_SCHEME.test(m[2])) {
+      out += `<a href="${esc(m[2])}" target="_blank" rel="noopener" style="color: #500000; text-decoration: underline;">${esc(m[1])}</a>`;
+    } else {
+      out += esc(m[1]);
+    }
     last = re.lastIndex;
   }
   out += esc(text.slice(last));

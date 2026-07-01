@@ -12,9 +12,9 @@ This is the primary workflow for whoever sends the newsletter each issue.
 
 Open [`CONTENT_TEMPLATE.md`](CONTENT_TEMPLATE.md) and give it to Claude (or another AI) along with the content for this issue. Ask it to fill in the template:
 
-- One `### ` block per item (research brief, event, opportunity, headline, etc.)
-- Each block has a `group:` field — use only the valid values listed in the template comments
-- Mark the one featured event (if any) with `featured: yes`
+- Sections are `# ` headings, groups are `## ` sub-headings, and each item is one `### ` block (research brief, event, opportunity, headline, etc.)
+- Fields are written as `**Label:** value` — e.g. `**Title:** ...`, `**Authors:** ...`, `**Summary:** ...`, `**Date:** ...`, `**Time:** ...`, `**Location:** ...`, `**Source:** ...`, `**Url:** ...` (use `**Metaline:** ...` for a combined meta line)
+- Don't mark a featured item in the doc — the featured event is chosen later, in the app's Outline step
 - Delete any `### ` blocks or entire sections that have no content this issue
 
 The AI should return a filled `.md` file you can download and upload in the next step.
@@ -25,14 +25,14 @@ Navigate to the hosted app URL (see [Deploying on GitHub Pages](#deploying-on-gi
 
 ### Step 3 — Upload the filled `.md`
 
-On the first screen, click **Choose file** and select the filled markdown file the AI produced. The app parses it and moves you to the Triage step automatically.
+On the first screen, click **Choose file** and select the filled markdown file the AI produced. The app parses it and moves you to the Outline step automatically.
 
-### Step 4 — Triage
+### Step 4 — Outline
 
 - Toggle sections on or off (sections with no items default to off)
-- Star (⭐) the featured event if there is one
+- Use the **Featured** toggle on the featured event, if there is one
 - Drag to reorder sections
-- Set the issue date and header image URL
+- Set the issue date (the header image defaults to the canonical template asset and isn't set here)
 
 Click **Next** when you're satisfied.
 
