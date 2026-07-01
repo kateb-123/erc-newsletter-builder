@@ -572,11 +572,16 @@ const EDIT_HOVER_CSS = `
 `;
 
 /**
- * Active editor reference. Kept so we can close the previous panel
- * when the user clicks a different field.
- * @type {{ panel: HTMLElement, ref: object }|null}
+ * Open editor cards, keyed by item ref ("section::item"). Lets several items
+ * be edited at once; re-clicking an open item focuses its card instead of
+ * duplicating. @type {Map<string, { card: HTMLElement, refs: Array }>}
  */
-let activeEditor = null;
+const openCards = new Map();
+
+/** Stable key for an item ref group. */
+function refKey(section, item) {
+  return `${section}::${item || ''}`;
+}
 
 /**
  * The window-resize listener that re-fits the preview to the pane width.
@@ -673,7 +678,10 @@ function wireIframeEditing(iframe, editStepContainer) {
     if (!section) return;
 
     const refs = collectItemFields(doc, section, item);
-    if (refs.length) openItemEditor(refs, iframe, editStepContainer);
+    if (refs.length) {
+      openItemEditor(refs, iframe);
+      flashItem(doc, section, item);
+    }
   });
 }
 
@@ -692,6 +700,13 @@ function collectItemNodes(doc, section, item) {
       )]
     : [...doc.querySelectorAll(`[data-edit-section="${section}"][data-edit-field]`)]
         .filter((n) => !n.dataset.editItem);
+}
+
+/** Briefly highlight the clicked item so its editor card is easy to connect. */
+function flashItem(doc, section, item) {
+  const els = collectItemNodes(doc, section, item);
+  els.forEach((el) => el.classList.add('ec-edit-hover'));
+  setTimeout(() => els.forEach((el) => el.classList.remove('ec-edit-hover')), 600);
 }
 
 function collectItemFields(doc, section, item) {
@@ -739,168 +754,155 @@ function humanize(key) {
 }
 
 /**
- * Open the editor panel for a whole item — one labeled input per field, so the
- * user edits the title, details, summary, etc. together in one box.
- * Replaces any currently-open editor.
- * @param {Array<{ section: string, item?: string, field: string }>} refs
- * @param {HTMLIFrameElement} iframe
- * @param {HTMLElement} container - the edit step container (parent page)
+ * Human-friendly card label: "Section · Item title" (falls back to the item
+ * key, then the section) — e.g. "ERC Research · Teacher Retention…".
+ * @param {Array<{section:string,item?:string,field:string}>} refs
+ * @returns {string}
  */
-function openItemEditor(refs, iframe, container) {
-  // Close any previous editor
-  closeFieldEditor();
-  if (!refs.length) return;
-
-  const panel = document.createElement('div');
-  panel.className = 'field-editor-panel';
-  panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-label', 'Edit item');
-
-  // Header row — show the item's title (recognizable) or the section name.
-  const header = document.createElement('div');
-  header.className = 'field-editor-header';
-
-  const labelEl = document.createElement('span');
-  labelEl.className = 'field-editor-label';
+function itemCardLabel(refs) {
+  const { section, item } = refs[0];
   const titleRef = refs.find((r) => r.field === 'title');
-  const titleVal = titleRef ? (getField(state.issue, titleRef) || '').trim() : '';
-  labelEl.textContent = titleVal || humanize(refs[0].section);
+  const title = titleRef ? (getField(state.issue, titleRef) || '').trim() : '';
+  const right = title || (item ? humanize(item) : '');
+  return right ? `${humanize(section)} · ${right}` : humanize(section);
+}
 
+/**
+ * Open (or focus) an editor card for a whole item in the persistent edit
+ * column. Multiple cards may be open at once; they stack in open-order. Typing
+ * updates the preview live; Save commits + closes the card.
+ * @param {Array<{section:string,item?:string,field:string}>} refs
+ * @param {HTMLIFrameElement} iframe
+ */
+function openItemEditor(refs, iframe) {
+  if (!refs.length) return;
+  const list = document.querySelector('.edit-card-list');
+  if (!list) return;
+
+  const key = refKey(refs[0].section, refs[0].item);
+
+  // Already open → focus + scroll to the existing card, don't duplicate.
+  const existing = openCards.get(key);
+  if (existing) {
+    existing.card.scrollIntoView({ block: 'nearest' });
+    const first = existing.card.querySelector('input, textarea');
+    if (first) first.focus();
+    return;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'edit-card';
+  card.setAttribute('role', 'group');
+
+  // Header: friendly label + close (× behaves like Save — edits are live).
+  const header = document.createElement('div');
+  header.className = 'edit-card-header';
+  const labelEl = document.createElement('span');
+  labelEl.className = 'edit-card-label';
+  labelEl.textContent = itemCardLabel(refs);
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
-  closeBtn.className = 'field-editor-close';
+  closeBtn.className = 'edit-card-close';
   closeBtn.textContent = '✕';
   closeBtn.setAttribute('aria-label', 'Close editor');
-  closeBtn.addEventListener('click', closeFieldEditor);
-
+  closeBtn.addEventListener('click', () => closeCard(key));
   header.appendChild(labelEl);
   header.appendChild(closeBtn);
-  panel.appendChild(header);
+  card.appendChild(header);
 
-  // Debounce the iframe re-render so typing doesn't reset its scroll on every
-  // keystroke (state + autosave still update immediately).
+  // Live preview re-render, debounced so typing doesn't thrash the iframe.
   const debouncedPreview = debounce(() => refreshEditIframe(iframe), 350);
 
-  // One labeled input (textarea for long fields) per field.
   const fieldInputs = [];
   for (const ref of refs) {
     const group = document.createElement('div');
-    group.className = 'field-editor-group';
-
+    group.className = 'edit-card-group';
     const sub = document.createElement('span');
-    sub.className = 'field-editor-sublabel';
+    sub.className = 'edit-card-sublabel';
     sub.textContent = FIELD_LABELS[ref.field] || humanize(ref.field);
-
-    const isLong =
-      ref.field === 'summary' || ref.field === 'intro' || ref.field === 'description';
+    const isLong = ref.field === 'summary' || ref.field === 'intro' || ref.field === 'description';
     let inputEl;
     if (isLong) {
       inputEl = document.createElement('textarea');
-      inputEl.className = 'field-editor-textarea';
+      inputEl.className = 'edit-card-textarea';
       inputEl.rows = 4;
     } else {
       inputEl = document.createElement('input');
       inputEl.type = 'text';
-      inputEl.className = 'field-editor-input';
+      inputEl.className = 'edit-card-input';
     }
-    // Use .value (not innerHTML) — never put user text in HTML
     inputEl.value = getField(state.issue, ref) ?? '';
-
     inputEl.addEventListener('input', () => {
       setField(state.issue, ref, inputEl.value);
+      // Keep the card label live if the title changes.
+      if (ref.field === 'title') labelEl.textContent = itemCardLabel(refs);
       scheduleSave();
       debouncedPreview();
     });
-
     group.appendChild(sub);
     group.appendChild(inputEl);
-    panel.appendChild(group);
+    card.appendChild(group);
     fieldInputs.push({ ref, inputEl });
   }
 
-  // Action row
+  // Footer: quiet Revert + Save (commit & close this one card).
   const actions = document.createElement('div');
-  actions.className = 'field-editor-actions';
-
+  actions.className = 'edit-card-actions';
   const revertBtn = document.createElement('button');
   revertBtn.type = 'button';
-  revertBtn.className = 'btn btn-secondary field-editor-revert-btn';
+  revertBtn.className = 'edit-card-revert';
   revertBtn.textContent = 'Revert to original';
-  // Reverts every field shown in this editor back to the uploaded baseline.
   revertBtn.addEventListener('click', () => {
     for (const { ref, inputEl } of fieldInputs) {
-      const originalValue = getField(state.baseline, ref) ?? '';
-      inputEl.value = originalValue;
-      setField(state.issue, ref, originalValue);
+      const original = getField(state.baseline, ref) ?? '';
+      inputEl.value = original;
+      setField(state.issue, ref, original);
     }
+    labelEl.textContent = itemCardLabel(refs);
     scheduleSave();
     refreshEditIframe(iframe);
   });
-
-  const doneBtn = document.createElement('button');
-  doneBtn.type = 'button';
-  doneBtn.className = 'btn btn-primary field-editor-done-btn';
-  doneBtn.textContent = 'Done';
-  doneBtn.addEventListener('click', closeFieldEditor);
-
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.className = 'btn btn-primary edit-card-save';
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', () => closeCard(key));
   actions.appendChild(revertBtn);
-  actions.appendChild(doneBtn);
-  panel.appendChild(actions);
+  actions.appendChild(saveBtn);
+  card.appendChild(actions);
 
-  // Place the panel in the edit-step's flex row so it sits as a sidebar to the
-  // right of the preview (falls back to the container if the layout is absent).
-  const layout = container.querySelector('.edit-layout') || container;
-  layout.appendChild(panel);
-  activeEditor = { panel, refs };
+  list.appendChild(card);
+  openCards.set(key, { card, refs });
+  updateColumnChrome();
 
-  // The panel is a fixed overlay (out of flow), so the preview doesn't reflow
-  // and needs no refit — opening the editor leaves the newsletter exactly put.
-  // Dock it into the empty space to the right of the scaled newsletter.
-  positionEditorPanel(panel);
-
-  // Focus the first input after it's in the DOM
+  card.scrollIntoView({ block: 'nearest' });
   requestAnimationFrame(() => fieldInputs[0] && fieldInputs[0].inputEl.focus());
 }
 
-/** Remove the active editor panel if one exists. */
-function closeFieldEditor() {
-  if (activeEditor) {
-    activeEditor.panel.remove();
-    activeEditor = null;
-  }
+/** Close one card (commit is implicit — edits are already live). */
+function closeCard(key) {
+  const entry = openCards.get(key);
+  if (!entry) return;
+  entry.card.remove();
+  openCards.delete(key);
+  updateColumnChrome();
 }
 
-/**
- * Dock the (fixed) editor panel into the empty space to the RIGHT of the
- * scaled newsletter, so it doesn't overlap the content. If there isn't enough
- * room beside it, fall back to a bottom sheet. Called on open and on resize.
- * @param {HTMLElement} panel
- */
-function positionEditorPanel(panel) {
-  const wrap = document.querySelector('.edit-preview-wrap');
-  if (!wrap) return;
-  const rect = wrap.getBoundingClientRect();
-  const scale = Math.min(PREVIEW_MAX_SCALE, wrap.clientWidth / PREVIEW_WIDTH);
-  const gap = 16;
-  const left = rect.left + PREVIEW_WIDTH * scale + gap;
-  const available = rect.right - left;
-  if (available >= 280) {
-    // Enough gutter — sit beside the newsletter, filling the leftover space.
-    panel.classList.remove('field-editor-panel--sheet');
-    panel.style.left = Math.round(left) + 'px';
-    panel.style.right = 'auto';
-    panel.style.width = Math.round(Math.min(available, 460)) + 'px';
-  } else {
-    // Too narrow to fit beside — dock as a bottom sheet (CSS class).
-    panel.classList.add('field-editor-panel--sheet');
-    panel.style.left = '';
-    panel.style.right = '';
-    panel.style.width = '';
-  }
+/** Save all — close every open card. Does NOT navigate. */
+function closeAllCards() {
+  for (const { card } of openCards.values()) card.remove();
+  openCards.clear();
+  updateColumnChrome();
 }
 
-/** Temporary stub — Task 3 replaces this with the real implementation. */
-function closeAllCards() {}
+/** Show the empty hint when no cards are open; show Save-all when ≥1. */
+function updateColumnChrome() {
+  const empty = document.querySelector('.edit-column-empty');
+  const saveAll = document.querySelector('.edit-saveall-btn');
+  const has = openCards.size > 0;
+  if (empty) empty.hidden = has;
+  if (saveAll) saveAll.hidden = !has;
+}
 
 /**
  * Render the edit step: large full-width editable-mode preview iframe.
@@ -911,8 +913,8 @@ function renderEdit() {
   const container = document.querySelector('[data-step="edit"]');
   if (!container) return;
 
-  // Close any lingering editor from a previous visit
-  closeFieldEditor();
+  // Drop any card registry from a previous visit (the DOM is rebuilt below).
+  openCards.clear();
 
   const h2 = container.querySelector('h2');
   container.innerHTML = '';

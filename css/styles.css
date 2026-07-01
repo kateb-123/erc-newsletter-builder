@@ -636,6 +636,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
 }
 
 .edit-column-empty {
@@ -657,145 +659,75 @@ body {
   transform-origin: top left;
 }
 
-/* --- Field editor panel (click-to-edit, edit step) -------- */
-
-/*
- * Floating overlay pinned to the top-right of the viewport. It's OUT of layout
- * flow (position: fixed) so opening it doesn't reflow/rescale the preview —
- * the newsletter stays put, no jump. Stays in view while the page scrolls.
- */
-.field-editor-panel {
-  position: fixed;
-  top: 132px;
-  right: 28px;
-  z-index: 50;
-  width: 340px;
-  max-height: calc(100vh - 156px);
-  overflow-y: auto;
+/* --- Edit cards (in the persistent column) ---------------- */
+.edit-card {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
   background: #fff;
-  border: 2px solid #913B3B;
-  border-radius: 7px;
-  box-shadow: 0 8px 28px rgba(80,0,0,0.18), 0 2px 8px rgba(0,0,0,0.12);
-  padding: 14px 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 12px 14px 14px;
 }
-
-/* When there isn't room beside the newsletter, JS adds this class to dock the
-   panel as a bottom sheet instead (so it never overlaps the content). */
-.field-editor-panel--sheet {
-  top: auto;
-  bottom: 12px;
-  right: 12px;
-  left: 12px;
-  width: auto;
-  max-width: none;
-  max-height: 55vh;
-}
-
-.field-editor-header {
+.edit-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 10px;
 }
-
-.field-editor-label {
-  font-family: Verdana, Geneva, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: #913B3B;
+.edit-card-label {
+  font-weight: 600;
+  color: #500000;
+  font-size: 0.9rem;
   line-height: 1.3;
 }
-
-/* One stacked group per field inside the item editor */
-.field-editor-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field-editor-sublabel {
-  font-family: Verdana, Geneva, sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #9a8a8a;
-}
-
-.field-editor-close {
+.edit-card-close {
   background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: #9a8a8a;
-  padding: 2px 5px;
-  border-radius: 3px;
+  border: 0;
+  color: #8a8a8a;
+  font-size: 0.9rem;
   line-height: 1;
-  transition: color 0.12s, background 0.12s;
+  cursor: pointer;
+  padding: 2px 4px;
 }
-
-.field-editor-close:hover {
-  color: #500000;
-  background: #f5f0f0;
+.edit-card-close:hover { color: #500000; }
+.edit-card-group { margin-bottom: 10px; }
+.edit-card-sublabel {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b6b6b;
+  margin-bottom: 3px;
 }
-
-.field-editor-input,
-.field-editor-textarea {
+.edit-card-input,
+.edit-card-textarea {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
-  font-size: 13px;
-  color: #202020;
-  resize: vertical;
-  line-height: 1.5;
   box-sizing: border-box;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  border: 1px solid #cfcfcf;
+  border-radius: 5px;
 }
-
-.field-editor-input:focus,
-.field-editor-textarea:focus {
-  outline: none;
-  border-color: #913B3B;
-  box-shadow: 0 0 0 2px rgba(145,59,59,0.2);
-}
-
-.field-editor-actions {
+.edit-card-textarea { resize: vertical; }
+.edit-card-actions {
   display: flex;
-  gap: 8px;
   align-items: center;
-  /* "Done" on the right, the quiet "Revert" link pushed to the far left so
-     they're not adjacent and can't be hit by accident. */
   justify-content: space-between;
+  margin-top: 4px;
 }
-
-/* Revert is destructive-ish (throws away edits), so make it a subdued text
-   link rather than a button — easy to find, hard to click by accident. */
-.field-editor-revert-btn,
-.field-editor-revert-btn:not(:disabled):hover,
-.field-editor-revert-btn:not(:disabled):active {
+.edit-card-revert {
   background: none;
-  border: none;
-  box-shadow: none;
-  color: #9a8a8a;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0;
-  padding: 6px 2px;
-}
-
-.field-editor-revert-btn:not(:disabled):hover {
-  color: #500000;
+  border: 0;
+  color: #8a8a8a;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
   text-decoration: underline;
+  padding: 2px 0;
 }
-
-.field-editor-done-btn {
-  font-size: 12px;
-  padding: 6px 16px;
-}
+.edit-card-revert:hover { color: #500000; }
+.edit-card-save { padding: 6px 16px; font-size: 0.85rem; }
 
 /* --- Export step ------------------------------------------ */
 .export-desc {
