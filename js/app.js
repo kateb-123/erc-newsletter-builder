@@ -276,6 +276,48 @@ window.__handleFile = handleFile;
 // ---------------------------------------------------------------------------
 
 /**
+ * Build a read-only inline "peek" of an item's content for the Outline step —
+ * its fields (author, details, date, summary, …) shown as quiet label:value
+ * lines. Title is omitted (it's already the row). Returns a hidden element.
+ * @param {object} item - an issue section item ({ fields, ... })
+ * @returns {HTMLElement}
+ */
+function buildItemPreview(item) {
+  const wrap = document.createElement('div');
+  wrap.className = 'triage-item-preview';
+  const fields = (item && item.fields) || {};
+  const has = (k) => fields[k] != null && String(fields[k]).trim() !== '';
+  // Preferred reading order, then any other non-empty fields (never the title).
+  const preferred = ['authors', 'author', 'meta', 'date', 'summary', 'description', 'url'];
+  const keys = [
+    ...preferred.filter(has),
+    ...Object.keys(fields).filter((k) => k !== 'title' && !preferred.includes(k) && has(k)),
+  ];
+
+  if (keys.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'triage-preview-empty';
+    empty.textContent = 'No additional details.';
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  for (const k of keys) {
+    const line = document.createElement('div');
+    line.className = 'triage-preview-line';
+    const lbl = document.createElement('span');
+    lbl.className = 'triage-preview-label';
+    lbl.textContent = (FIELD_LABELS[k] || humanize(k)) + ': ';
+    const val = document.createElement('span');
+    val.textContent = String(fields[k]); // user-derived — textContent only
+    line.appendChild(lbl);
+    line.appendChild(val);
+    wrap.appendChild(line);
+  }
+  return wrap;
+}
+
+/**
  * Render the triage step UI from `state.issue`.
  * Called each time the wizard navigates to the 'triage' step.
  */
@@ -455,10 +497,32 @@ function renderTriage() {
             const evRow = document.createElement('div');
             evRow.className = 'triage-event-row';
 
-            // Title (user-derived — textContent only)
+            // Read-only "peek" preview of this item's content, toggled by the
+            // caret or the title. Rebuilt each render (collapsed) — it's a quick
+            // glance, not persistent state.
+            const preview = buildItemPreview(item);
+            preview.hidden = true;
+            const togglePeek = () => {
+              const open = preview.hidden;
+              preview.hidden = !open;
+              caret.textContent = open ? '▾' : '▸';
+              caret.setAttribute('aria-expanded', String(open));
+            };
+
+            // Disclosure caret
+            const caret = document.createElement('button');
+            caret.type = 'button';
+            caret.className = 'triage-peek-btn';
+            caret.textContent = '▸';
+            caret.setAttribute('aria-label', 'Show details');
+            caret.setAttribute('aria-expanded', 'false');
+            caret.addEventListener('click', togglePeek);
+
+            // Title (user-derived — textContent only). Also toggles the peek.
             const titleSpan = document.createElement('span');
             titleSpan.className = 'triage-event-title';
             titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
+            titleSpan.addEventListener('click', togglePeek);
 
             // Position indicator (e.g. "2 of 5")
             const posSpan = document.createElement('span');
@@ -497,6 +561,7 @@ function renderTriage() {
               }
             });
 
+            evRow.appendChild(caret);
             evRow.appendChild(titleSpan);
 
             // Featured toggle — events section only. Compact, aligned with the
@@ -530,6 +595,7 @@ function renderTriage() {
             evRow.appendChild(upBtn);
             evRow.appendChild(downBtn);
             sectionContainer.appendChild(evRow);
+            sectionContainer.appendChild(preview);
           }
         }
       };

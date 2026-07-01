@@ -488,6 +488,21 @@ body {
   border-bottom: 0;
 }
 
+.triage-peek-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: #9a8a8a;
+  font-size: 10px;
+  line-height: 1;
+  padding: 0;
+  width: 14px;
+  flex-shrink: 0;
+}
+.triage-peek-btn:hover {
+  color: #500000;
+}
+
 .triage-event-title {
   flex: 1;
   font-size: 13px;
@@ -495,6 +510,29 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+}
+.triage-event-title:hover {
+  color: #500000;
+}
+
+/* Read-only inline "peek" of an item's content (Outline step) */
+.triage-item-preview {
+  padding: 2px 8px 8px 24px;
+  font-size: 12px;
+  color: #5c5c5c;
+  line-height: 1.45;
+  border-bottom: 1px solid #f0eeec;
+}
+.triage-preview-line {
+  margin-bottom: 2px;
+}
+.triage-preview-label {
+  color: #9a8a8a;
+}
+.triage-preview-empty {
+  color: #9a8a8a;
+  font-style: italic;
 }
 
 .triage-featured-label {
