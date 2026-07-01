@@ -578,28 +578,82 @@ body {
    vertically (no inner box, no horizontal scroll). The wrapper clips any
    sub-pixel overflow and reserves the scaled height; JS sets the iframe's
    width/height/transform on load and resize (see renderEdit). */
-/* Two-column edit step: preview on the left, editor panel as a sticky
-   sidebar on the right. The layout is flex so the preview takes the full
-   width when no editor is open and reflows narrower when one opens. */
+/* Two app-level columns: the whole newsletter (one iframe on its stage) on the
+   left, a persistent edit column on the right. Left-justified so the column
+   sits directly beside the sheet; leftover window width falls to the far
+   right. Constants here MUST match COLUMN_W / EDIT_GAP / STAGE_PAD in app.js. */
 .edit-layout {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
+  justify-content: flex-start;
+  gap: 20px; /* = EDIT_GAP */
   margin-top: 16px;
 }
 
 .edit-preview-wrap {
-  flex: 1 1 auto;
+  /* Shrink to the sheet (do NOT grow) so the column stays adjacent. */
+  flex: 0 0 auto;
   min-width: 0;
-  /* Full height — the iframe grows to the newsletter's full height so the whole
-     thing scrolls with the PAGE (one scrollbar, no inner scroll region). */
   overflow: hidden;
+  background: #e4e5e8;
+  padding: 24px; /* = STAGE_PAD */
+  border-radius: 10px;
+}
+
+.edit-column {
+  flex: 0 0 340px; /* = COLUMN_W */
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+}
+
+.edit-column-title {
+  font-weight: 600;
+  color: #500000;
+  font-size: 0.95rem;
+}
+
+.edit-saveall-btn {
+  background: none;
+  border: 0;
+  color: #500000;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  text-decoration: underline;
+}
+
+.edit-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-column-empty {
+  color: #6b6b6b;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 12px;
+  border: 1px dashed #cfcfcf;
+  border-radius: 8px;
+  background: #fafafa;
 }
 
 .edit-preview-iframe {
   display: block;
-  border: 0;
+  /* Float the newsletter as a white sheet on the gray stage. */
+  border: 1px solid rgba(0, 0, 0, 0.08);
   background: #fff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.16);
   transform-origin: top left;
 }
 

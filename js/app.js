@@ -12,6 +12,7 @@ import { renderNewsletter } from './template.js';
 import { issueToMarkdown } from './serialize.js';
 import { saveState, loadState, clearState } from './state.js';
 import { getField, setField } from './editpath.js';
+import { computePreviewScale } from './preview.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -595,10 +596,16 @@ let refitPreview = null;
 /** True newsletter width (px). The preview is scaled down to fit narrower panes. */
 const PREVIEW_WIDTH = 705;
 
-/** Cap the preview at 87% of true size (never larger); it scales down further
-    on narrow panes so there's never a horizontal scrollbar. The freed space to
-    the right of the newsletter is where the editor box docks. */
-const PREVIEW_MAX_SCALE = 0.87;
+/** Cap the preview at 95% of true size; scales down on narrow windows so the
+    edit column always fits and there's never a horizontal scrollbar. */
+const PREVIEW_MAX_SCALE = 0.95;
+
+/** Persistent edit-column width (px) — matches .edit-column in styles.css. */
+const COLUMN_W = 340;
+/** Flex gap between preview and edit column — matches .edit-layout gap. */
+const EDIT_GAP = 20;
+/** Horizontal padding on ONE side of the gray stage — matches .edit-preview-wrap. */
+const STAGE_PAD = 24;
 
 /**
  * Re-render the editable iframe (after an edit) and re-attach listeners.
@@ -892,6 +899,9 @@ function positionEditorPanel(panel) {
   }
 }
 
+/** Temporary stub — Task 3 replaces this with the real implementation. */
+function closeAllCards() {}
+
 /**
  * Render the edit step: large full-width editable-mode preview iframe.
  * The editable HTML has data-edit-* hooks for click-to-edit.
@@ -931,27 +941,28 @@ function renderEdit() {
   const iframe = document.createElement('iframe');
   iframe.className = 'edit-preview-iframe';
   iframe.setAttribute('title', 'Newsletter preview — click fields to edit');
+  // No inner scrollbar — the iframe is sized to the full content height and the
+  // PAGE owns scrolling, so the only scrollbar is the browser's (outside the
+  // sheet). Suppresses the faint phantom scrollbar the `zoom` transform would
+  // otherwise leave on the newsletter from sub-pixel height rounding.
+  iframe.setAttribute('scrolling', 'no');
 
-  // Render the newsletter at its true width, then zoom it down so the full
-  // width fits the pane (no horizontal scroll). `zoom` (unlike transform:scale)
-  // shrinks the layout box too, so the iframe reports its scaled height and the
-  // wrap's max-height cap + overflow give a single, normal-sized scrollbar
-  // inside the bounded preview region.
   function fitPreview() {
     const doc = iframe.contentDocument;
     if (!doc || !doc.body) return;
-    // Pane not laid out yet (e.g. load fired while the step was hidden). Skip
-    // rather than locking in zoom 0; a later refit will pick up the width.
-    if (!wrap.clientWidth) return;
-    // Measure at the true width with zoom reset, so clientWidth math is honest.
+    // Measure the whole two-column row; the sheet's share is computed by the
+    // helper (which reserves the column, gap, and both sides of stage padding).
+    const layoutWidth = layout.clientWidth;
+    if (!layoutWidth) return; // step not laid out yet; a later refit will run
     iframe.style.zoom = '1';
     iframe.style.width = PREVIEW_WIDTH + 'px';
-    const contentHeight = Math.max(
-      doc.body.scrollHeight,
-      doc.documentElement.scrollHeight
-    );
+    const contentHeight = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
     iframe.style.height = contentHeight + 'px';
-    const scale = Math.min(PREVIEW_MAX_SCALE, wrap.clientWidth / PREVIEW_WIDTH);
+    const scale = computePreviewScale({
+      layoutWidth, columnWidth: COLUMN_W, gap: EDIT_GAP, stagePad: STAGE_PAD,
+      sheetWidth: PREVIEW_WIDTH, maxScale: PREVIEW_MAX_SCALE,
+    });
+    if (scale <= 0) return;
     iframe.style.zoom = String(scale);
   }
   refitPreview = fitPreview;
@@ -975,12 +986,43 @@ function renderEdit() {
 
   previewResizeHandler = debounce(() => {
     fitPreview();
-    if (activeEditor) positionEditorPanel(activeEditor.panel);
   }, 150);
   window.addEventListener('resize', previewResizeHandler);
 
   wrap.appendChild(iframe);
   layout.appendChild(wrap);
+
+  // Persistent edit column (right). Always present so opening/closing cards
+  // never reflows or rescales the sheet.
+  const column = document.createElement('div');
+  column.className = 'edit-column';
+
+  const colHeader = document.createElement('div');
+  colHeader.className = 'edit-column-header';
+  const colTitle = document.createElement('span');
+  colTitle.className = 'edit-column-title';
+  colTitle.textContent = 'Editing';
+  const saveAllBtn = document.createElement('button');
+  saveAllBtn.type = 'button';
+  saveAllBtn.className = 'edit-saveall-btn';
+  saveAllBtn.textContent = 'Save all';
+  saveAllBtn.hidden = true;
+  saveAllBtn.addEventListener('click', closeAllCards);
+  colHeader.appendChild(colTitle);
+  colHeader.appendChild(saveAllBtn);
+
+  const cardList = document.createElement('div');
+  cardList.className = 'edit-card-list';
+
+  const emptyHint = document.createElement('div');
+  emptyHint.className = 'edit-column-empty';
+  emptyHint.textContent = 'Click any part of the newsletter to edit it.';
+
+  column.appendChild(colHeader);
+  column.appendChild(cardList);
+  column.appendChild(emptyHint);
+  layout.appendChild(column);
+
   container.appendChild(layout);
   iframe.srcdoc = renderNewsletter(state.issue, { editable: true });
 }
