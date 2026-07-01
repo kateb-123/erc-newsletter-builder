@@ -14,6 +14,25 @@ export function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+// ─── Prose helper ──────────────────────────────────────────────────────────────
+
+/**
+ * Escapes all text, converting [label](href) markdown links into a maroon
+ * underlined <a target="_blank" rel="noopener">. No data-edit-* attributes.
+ */
+export function renderProse(text) {
+  if (!text) return '';
+  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(text))) {
+    out += esc(text.slice(last, m.index));
+    out += `<a href="${esc(m[2])}" target="_blank" rel="noopener" style="color: #500000; text-decoration: underline;">${esc(m[1])}</a>`;
+    last = re.lastIndex;
+  }
+  out += esc(text.slice(last));
+  return out;
+}
+
 // ─── Edit-hook helper ─────────────────────────────────────────────────────────
 
 /**
@@ -85,7 +104,7 @@ function buildBriefs(sec, editable = false) {
 <tr><td style="padding: ${topPad} 24px 0 40px;">
 <p style="margin:0 0 4px; line-height: 1.3; font-family: ${FONT_BODY}; font-size: 16px; font-weight: 700; color: #202020;">${titleLink}</p>
 ${fields.authors ? `<p style="margin:0 0 8px; font-family: ${FONT_BODY}; font-size: 14px; color: #5C5C5C;"${editAttrs('research', item.id, 'authors', editable)}>${esc(fields.authors)}</p>` : ''}
-${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('research', item.id, 'summary', editable)}>${esc(fields.summary)}</p>` : ''}
+${fields.summary ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('research', item.id, 'summary', editable)}>${renderProse(fields.summary)}</p>` : ''}
 </td></tr>`;
     if (i < sec.items.length - 1) {
       rows += DIVIDER;
@@ -167,7 +186,7 @@ function buildGroupedList(secReg, sec, editable = false) {
 
       // Description only for featured events
       const descLine = (isFeaturedGroup || featured) && fields.summary
-        ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs(sectionKey, item.id, 'summary', editable)}>${esc(fields.summary)}</p>`
+        ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs(sectionKey, item.id, 'summary', editable)}>${renderProse(fields.summary)}</p>`
         : '';
 
       // For opportunities: use fields.meta as the meta line
@@ -350,7 +369,7 @@ function buildSpotlight(secReg, sec, editable = false) {
         }
 
         const summaryLine = fields.summary
-          ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('spotlight', item.id, 'summary', editable)}>${esc(fields.summary)}</p>`
+          ? `<p style="margin:0; line-height: 1.5; font-family: ${FONT_BODY}; font-size: 14px; color: #404040;"${editAttrs('spotlight', item.id, 'summary', editable)}>${renderProse(fields.summary)}</p>`
           : '';
 
         rows += `<tr><td style="padding: ${topPad} 24px 0 40px;">
@@ -451,7 +470,7 @@ function buildIntro(introText, editable = false) {
   if (paras.length === 0) return '';
   const styled = paras.map((p, i) => {
     const margin = i < paras.length - 1 ? 'margin: 0px 0px 12px;' : 'margin: 0px;';
-    return `<p style="text-align: left; line-height: 1.5; ${margin} font-family: ${FONT_BODY}; font-size: 14px; color: #202020;"${editAttrs('intro', null, 'intro', editable)}>${esc(p.trim())}</p>`;
+    return `<p style="text-align: left; line-height: 1.5; ${margin} font-family: ${FONT_BODY}; font-size: 14px; color: #202020;"${editAttrs('intro', null, 'intro', editable)}>${renderProse(p.trim())}</p>`;
   });
   return styled.join('\n');
 }

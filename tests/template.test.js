@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { renderNewsletter } from '../js/template.js';
+import { renderNewsletter, renderProse } from '../js/template.js';
 import { parseMarkdown, _resetIds } from '../js/parser.js';
 
 const issueOf = file => { _resetIds();
@@ -27,6 +27,14 @@ test('Submit callout shows by default and is omitted when showSubmit is false', 
   assert.ok(renderNewsletter(issue).includes(marker), 'callout should show by default');
   issue.sections.research.showSubmit = false;
   assert.ok(!renderNewsletter(issue).includes(marker), 'callout should be omitted when toggled off');
+});
+
+test('renderProse linkifies markdown links and escapes the rest', () => {
+  const html = renderProse('See [Cape Verde](https://x.org/cv) & <b>more</b>.');
+  assert.match(html, /<a href="https:\/\/x\.org\/cv" target="_blank" rel="noopener"[^>]*>Cape Verde<\/a>/);
+  assert.match(html, /&amp;/);       // bare & escaped
+  assert.match(html, /&lt;b&gt;/);   // stray HTML escaped, not rendered
+  assert.doesNotMatch(html, /data-edit/);
 });
 
 test('featured event renders under a FEATURED eyebrow', () => {
