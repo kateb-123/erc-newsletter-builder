@@ -853,3 +853,27 @@ body {
   outline: 2px solid rgba(80,0,0,0.35);
   outline-offset: 2px;
 }
+
+/* Simple text-link nav at the top of every step (mirrors the footer buttons,
+   but visually subordinate — not chunky buttons). */
+.wizard-topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.linknav {
+  background: none;
+  border: 0;
+  color: #500000;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+.linknav:hover { text-decoration: underline; }
+.linknav:disabled {
+  color: #b7b7b7;
+  cursor: default;
+  text-decoration: none;
+}

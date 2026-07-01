@@ -59,6 +59,8 @@ const scheduleSave = debounce(() => {
 
 const btnBack = document.getElementById('btn-back');
 const btnNext = document.getElementById('btn-next');
+const topBack = document.getElementById('top-back');
+const topNext = document.getElementById('top-next');
 
 /** @type {NodeListOf<HTMLElement>} */
 const stepSections = document.querySelectorAll('[data-step]');
@@ -103,9 +105,13 @@ function goTo(step) {
     }
   });
 
-  // Enable/disable nav buttons
-  btnBack.disabled = idx === 0;
-  btnNext.disabled = idx === STEPS.length - 1;
+  // Enable/disable nav controls (footer buttons + top links, kept in sync)
+  const atStart = idx === 0;
+  const atEnd = idx === STEPS.length - 1;
+  btnBack.disabled = atStart;
+  btnNext.disabled = atEnd;
+  topBack.disabled = atStart;
+  topNext.disabled = atEnd;
 
   // Step-specific render hooks
   if (step === 'triage') renderTriage();
@@ -117,15 +123,18 @@ function goTo(step) {
 // Button wiring
 // ---------------------------------------------------------------------------
 
-btnBack.addEventListener('click', () => {
+function goBack() {
   const idx = STEPS.indexOf(state.step);
   if (idx > 0) goTo(STEPS[idx - 1]);
-});
-
-btnNext.addEventListener('click', () => {
+}
+function goNext() {
   const idx = STEPS.indexOf(state.step);
   if (idx < STEPS.length - 1) goTo(STEPS[idx + 1]);
-});
+}
+btnBack.addEventListener('click', goBack);
+btnNext.addEventListener('click', goNext);
+topBack.addEventListener('click', goBack);
+topNext.addEventListener('click', goNext);
 
 // ---------------------------------------------------------------------------
 // Upload step
