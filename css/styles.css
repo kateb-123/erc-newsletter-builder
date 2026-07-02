@@ -507,8 +507,26 @@ body {
 }
 
 .triage-section-name {
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
   color: #202020;
+  letter-spacing: 0.2px;
+}
+
+/* Empty sections read as muted so they don't compete with populated ones. */
+.triage-section-name--empty {
+  font-weight: 600;
+  color: #9a8a8a;
+}
+
+/* The subtoggle label reuses .triage-section-name but shouldn't inherit the
+   bold section-header weight. */
+.triage-subtoggle-row .triage-section-name,
+.triage-switch-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: #4a4a4a;
+  letter-spacing: 0;
 }
 
 .triage-section-note {
