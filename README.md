@@ -2,6 +2,8 @@
 
 A browser-based wizard that turns an AI-prepared markdown file into finished ERC newsletter HTML, ready to paste into Outlook Web App. No installation, no build step, no dependencies — open the page and go.
 
+**Live app:** https://kateb-123.github.io/erc-newsletter-builder/
+
 ---
 
 ## How it works (the successor workflow)
@@ -21,30 +23,26 @@ The AI should return a filled `.md` file you can download and upload in the next
 
 ### Step 2 — Open the app
 
-Navigate to the hosted app URL (see [Deploying on GitHub Pages](#deploying-on-github-pages) below for the URL pattern).
+Go to the live app: **https://kateb-123.github.io/erc-newsletter-builder/**
 
 ### Step 3 — Upload the filled `.md`
 
-On the first screen, click **Choose file** and select the filled markdown file the AI produced. The app parses it and moves you to the Outline step automatically.
+On the first screen, choose the filled markdown file the AI produced. The app parses it and moves you to the Outline step automatically.
 
 ### Step 4 — Outline
 
-- Toggle sections on or off (sections with no items default to off)
-- Use the **Featured** toggle on the featured event, if there is one
-- Drag to reorder sections
-- Set the issue date (the header image defaults to the canonical template asset and isn't set here)
+- Every section with content is included automatically; empty sections are hidden. There are no on/off toggles.
+- Reorder items within a group using the ↑/↓ arrows (or the "Reorder items" drag panel on the next step).
+- If there's a featured event, tick its **Featured** checkbox (events only, one at a time).
+- Set the issue date. (The header image defaults to the canonical template asset and isn't set here.)
 
 Click **Next** when you're satisfied.
 
-### Step 5 — Preview
+### Step 5 — Preview & Edit
 
-Review the rendered newsletter. It looks close to what recipients will see.
+Review the rendered newsletter on the left. Click any item to open an editor card on the right and tweak the wording — the preview updates live as you type. Prose fields (intro/summary) have a bold / italic / link toolbar. Your edits autosave in the browser, so a reload won't lose them.
 
-### Step 6 — Edit (optional)
-
-Switch to the **Edit** tab to tweak any wording. The preview updates live as you type.
-
-### Step 7 — Export and send
+### Step 6 — Export and send
 
 1. Click **Copy HTML** to copy the finished HTML to your clipboard.
 2. In Outlook Web App, open a new message and use the **Insert HTML** add-in (by designmojo) to paste it.
@@ -54,46 +52,38 @@ Optionally, click **Download updated .md** to save the edited content for your r
 
 ---
 
-## Deploying on GitHub Pages
+## Hosting (GitHub Pages)
 
-The app is plain static files — no build, no backend. Any static host works. GitHub Pages is the simplest option.
+The app is plain static files — no build, no backend — so any static host works. This repo is published with GitHub Pages:
 
-1. Go to the repo on GitHub → **Settings** → **Pages**.
-2. Under **Source**, choose **Deploy from a branch**.
-3. Select the branch (e.g. `main`) and set the folder to **`/ (root)`**.
-4. Save. GitHub will publish the site after a minute or two.
+- **Settings → Pages → Source:** Deploy from a branch
+- **Branch:** `main`, folder **`/ (root)`**
 
-Because the app lives in the `newsletter-builder/` subfolder of the repo, the app URL will be:
+Because the app files live at the repo root, the live URL is simply:
 
 ```
-https://<your-github-username>.github.io/<repo-name>/newsletter-builder/
+https://kateb-123.github.io/erc-newsletter-builder/
 ```
 
-For example, if your GitHub username is `katebarnes` and the repo is `erc_newsletter`:
-
-```
-https://katebarnes.github.io/erc_newsletter/newsletter-builder/
-```
-
-Bookmark that URL. Share it with anyone who sends the newsletter.
+`index.html` loads its assets with `?v=` cache-busters (e.g. `css/styles.css?v=18`, `js/app.js?v=8`). Bump those numbers whenever you change `css/styles.css` or `js/app.js` so browsers fetch the fresh files instead of a cached copy.
 
 ---
 
 ## Running the tests
 
-The app has 23 unit tests covering the parser, serializer, and HTML renderer. They run with Node's built-in test runner — no `npm install` needed.
+The app has 46 unit tests covering the parser, serializer, edit paths, preview, and HTML renderer. They run with Node's built-in test runner — no `npm install` needed.
 
 **Requirements:** Node 18 or newer.
 
 ```bash
-cd newsletter-builder
 node --test
 ```
 
 You should see:
 
 ```
-ℹ pass 23
+ℹ tests 46
+ℹ pass 46
 ℹ fail 0
 ```
 
@@ -101,11 +91,8 @@ Tests live in [`tests/`](tests/). They import from [`js/`](js/) directly.
 
 ---
 
-## Keeping the app in sync with design changes
+## Keeping the app in sync with the newsletter design
 
-The newsletter's visual design is defined in two places:
+The newsletter's visual design has a canonical HTML template (kept in the private ERC newsletter working repo). [`js/template.js`](js/template.js) is a JavaScript port of that template — it generates the HTML the builder exports.
 
-1. **The committed template** — `newsletters/next-issue/ERC_Newsletter_next.html` is the canonical source of truth for how the newsletter looks.
-2. **The builder's renderer** — [`js/template.js`](js/template.js) is a JavaScript port of that template. It generates the HTML the builder exports.
-
-If you update the newsletter's design (fonts, colors, spacing, section structure), you need to update `js/template.js` to match, then update the corresponding tests in [`tests/`](tests/) to cover the new output. The two files should always stay in sync — if they drift, the builder will produce HTML that looks different from the committed template.
+If you change the newsletter's design (fonts, colors, spacing, section structure), update `js/template.js` to match and update the corresponding tests in [`tests/`](tests/). Keep the two in sync — if they drift, the builder will export HTML that looks different from the newsletter template.

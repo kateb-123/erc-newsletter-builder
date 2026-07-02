@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Node (only present if you ever add tooling; the app itself is dependency-free)
+node_modules/
+npm-debug.log*
