@@ -814,6 +814,11 @@ body {
   padding: 6px 8px;
   border: 1px solid #cfcfcf;
   border-radius: 5px;
+}
+
+/* Only multi-line textareas get the tall min-height (single-line inputs stay
+   their natural height). */
+.edit-card-textarea {
   min-height: 320px;
   resize: vertical;
 }
