@@ -68,36 +68,36 @@ body {
 .app-header {
   background: #fff;
   color: var(--bp-ink);
-  padding: 16px 32px 14px;
+  padding: 16px 0 14px;
   border-bottom: 1px solid var(--bp-line);
 }
 
+/* Inner content aligns to the same centered column as the wizard body */
 .app-header h1 {
   font-family: var(--bp-heading-font);
   font-size: 18px;
   font-weight: 800;
-  margin: 0 0 5px;
+  margin: 0 auto;
+  max-width: 820px;
+  width: 100%;
+  padding: 0 32px;
   letter-spacing: -0.2px;
   color: var(--bp-ink);
-}
-
-.app-subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--bp-faint);
 }
 
 /* --- Step indicator nav ----------------------------------- */
 .step-nav {
   background: #fff;
   border-bottom: 1px solid var(--bp-line);
-  padding: 10px 32px 16px;
+  padding: 10px 0 16px;
 }
 
 .step-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 0 auto;
+  max-width: 820px;
+  width: 100%;
+  padding: 0 32px;
   display: flex;
   gap: 8px;
   counter-reset: step-counter;
@@ -246,7 +246,19 @@ body {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 820px;
   margin: 0 auto;
+}
+
+/* Match the footer to the wider column on the Preview & Edit step. */
+body:has([data-step="edit"]:not([hidden])) .wizard-footer {
+  max-width: 1200px;
+}
+
+/* Header title + step pills follow the wider column on Preview & Edit too. */
+body:has([data-step="edit"]:not([hidden])) .app-header h1,
+body:has([data-step="edit"]:not([hidden])) .step-list {
+  max-width: 1200px;
 }
 
 /* --- Buttons ---------------------------------------------- */
