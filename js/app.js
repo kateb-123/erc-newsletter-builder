@@ -136,6 +136,17 @@ btnNext.addEventListener('click', goNext);
 topBack.addEventListener('click', goBack);
 topNext.addEventListener('click', goNext);
 
+// Step indicators are clickable — jump straight to any step. Once content is
+// loaded you can move freely between steps; before that, only Upload is live.
+stepIndicators.forEach((ind) => {
+  ind.addEventListener('click', () => {
+    const target = ind.dataset.navStep;
+    if (!target || target === state.step) return;
+    if (target !== 'upload' && !state.issue) return;
+    goTo(target);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Upload step
 // ---------------------------------------------------------------------------
