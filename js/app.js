@@ -96,13 +96,18 @@ function goTo(step) {
     }
   });
 
-  // Update step indicator highlights
+  // Update step indicator highlights + completed check-pills.
+  // A step reads as "completed" (green check) once an issue is loaded and it
+  // sits before the current step in the flow.
   stepIndicators.forEach((indicator) => {
-    if (indicator.dataset.navStep === step) {
-      indicator.classList.add('active');
-    } else {
-      indicator.classList.remove('active');
-    }
+    const navStep = indicator.dataset.navStep;
+    const isActive = navStep === step;
+    const navIdx = STEPS.indexOf(navStep);
+    indicator.classList.toggle('active', isActive);
+    indicator.classList.toggle(
+      'completed',
+      Boolean(state.issue) && !isActive && navIdx > -1 && navIdx < idx,
+    );
   });
 
   // Enable/disable nav controls (footer buttons + top links, kept in sync)
@@ -966,6 +971,155 @@ function updateColumnChrome() {
  * The editable HTML has data-edit-* hooks for click-to-edit.
  * Called each time the wizard navigates to 'edit'.
  */
+/**
+ * Bucket a section's items for display: one bucket per non-empty group
+ * (labeled), then a trailing unlabeled bucket for items that matched no
+ * group. Flat sections = one bucket. (Same shape the Outline step renders.)
+ * @param {object} reg - SECTION_REGISTRY entry
+ * @param {Array<object>} secItems
+ * @returns {Array<{label: string|null, items: Array<object>}>}
+ */
+function bucketSectionItems(reg, secItems) {
+  const hasGroups = reg.groups && reg.groups.length > 0;
+  const buckets = [];
+  if (hasGroups) {
+    const claimed = new Set();
+    for (const grp of reg.groups) {
+      const grpItems = secItems.filter((it) => it.group === grp.key);
+      if (grpItems.length === 0) continue;
+      grpItems.forEach((it) => claimed.add(it));
+      buckets.push({ label: grp.label, items: grpItems });
+    }
+    const leftover = secItems.filter((it) => !claimed.has(it));
+    if (leftover.length > 0) buckets.push({ label: null, items: leftover });
+  } else {
+    buckets.push({ label: null, items: secItems.slice() });
+  }
+  return buckets;
+}
+
+/**
+ * Move one item within its display bucket and write the new order back into
+ * the section's full item array (bucket members keep their original slots,
+ * so items in other groups are untouched).
+ * @param {Array<object>} allItems - the section's full items array (mutated)
+ * @param {Array<object>} bucketItems - the bucket's items, display order
+ * @param {number} fromIdx - index within the bucket being dragged
+ * @param {number} toIdx - index within the bucket to land on
+ */
+function moveWithinBucket(allItems, bucketItems, fromIdx, toIdx) {
+  if (fromIdx === toIdx) return;
+  const positions = bucketItems.map((it) => allItems.indexOf(it));
+  const newBucket = bucketItems.slice();
+  const [moved] = newBucket.splice(fromIdx, 1);
+  newBucket.splice(toIdx, 0, moved);
+  positions.forEach((pos, i) => { allItems[pos] = newBucket[i]; });
+}
+
+/**
+ * Build the collapsible drag-to-reorder panel for the edit column. Items are
+ * grouped exactly like the Outline step; each row drags within its own group.
+ * Dropping reorders the model, live-refreshes the preview, and autosaves.
+ * @param {HTMLIFrameElement} iframe - the preview iframe to refresh
+ * @returns {HTMLDetailsElement}
+ */
+function buildReorderPanel(iframe) {
+  const details = document.createElement('details');
+  details.className = 'reorder-panel';
+
+  const summary = document.createElement('summary');
+  summary.className = 'reorder-panel-summary';
+  summary.textContent = 'Reorder items';
+  details.appendChild(summary);
+
+  const body = document.createElement('div');
+  body.className = 'reorder-panel-body';
+  details.appendChild(body);
+
+  const render = () => {
+    body.innerHTML = '';
+    for (const reg of SECTION_REGISTRY) {
+      const sec = state.issue.sections[reg.key];
+      const secItems = (sec && sec.items) || [];
+      if (secItems.length < 1) continue;
+
+      const secLabel = document.createElement('div');
+      secLabel.className = 'reorder-section-label';
+      secLabel.textContent = reg.label; // registry constant — safe as textContent
+      body.appendChild(secLabel);
+
+      for (const bucket of bucketSectionItems(reg, secItems)) {
+        if (bucket.label) {
+          const grpLabel = document.createElement('div');
+          grpLabel.className = 'reorder-group-label';
+          grpLabel.textContent = bucket.label;
+          body.appendChild(grpLabel);
+        }
+
+        const listEl = document.createElement('div');
+        listEl.className = 'reorder-list';
+
+        bucket.items.forEach((item, idx) => {
+          const rowEl = document.createElement('div');
+          rowEl.className = 'reorder-row';
+          rowEl.draggable = bucket.items.length > 1;
+
+          const grip = document.createElement('span');
+          grip.className = 'reorder-grip';
+          grip.textContent = '⠿';
+          grip.setAttribute('aria-hidden', 'true');
+          rowEl.appendChild(grip);
+
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'reorder-title';
+          // User-derived — textContent only.
+          titleSpan.textContent = (item.fields && item.fields.title) || '(untitled)';
+          rowEl.appendChild(titleSpan);
+
+          rowEl.addEventListener('dragstart', (e) => {
+            listEl.dataset.dragIdx = String(idx);
+            rowEl.classList.add('reorder-row--dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            // Firefox needs data set for the drag to start at all.
+            e.dataTransfer.setData('text/plain', String(idx));
+          });
+          rowEl.addEventListener('dragend', () => {
+            delete listEl.dataset.dragIdx;
+            listEl.querySelectorAll('.reorder-row--over, .reorder-row--dragging')
+              .forEach((el) => el.classList.remove('reorder-row--over', 'reorder-row--dragging'));
+          });
+          rowEl.addEventListener('dragover', (e) => {
+            // Only rows in the SAME list are valid targets (drag within group).
+            if (listEl.dataset.dragIdx == null) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (String(idx) !== listEl.dataset.dragIdx) rowEl.classList.add('reorder-row--over');
+          });
+          rowEl.addEventListener('dragleave', () => {
+            rowEl.classList.remove('reorder-row--over');
+          });
+          rowEl.addEventListener('drop', (e) => {
+            const fromIdx = Number(listEl.dataset.dragIdx);
+            if (!Number.isInteger(fromIdx)) return;
+            e.preventDefault();
+            moveWithinBucket(state.issue.sections[reg.key].items, bucket.items, fromIdx, idx);
+            render();
+            refreshEditIframe(iframe);
+            scheduleSave();
+          });
+
+          listEl.appendChild(rowEl);
+        });
+
+        body.appendChild(listEl);
+      }
+    }
+  };
+
+  render();
+  return details;
+}
+
 function renderEdit() {
   const container = document.querySelector('[data-step="edit"]');
   if (!container) return;
@@ -1080,6 +1234,7 @@ function renderEdit() {
   column.appendChild(colHeader);
   column.appendChild(cardList);
   column.appendChild(emptyHint);
+  column.appendChild(buildReorderPanel(iframe));
   layout.appendChild(column);
 
   container.appendChild(layout);
