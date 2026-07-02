@@ -189,7 +189,6 @@ body {
 
 /* --- Wizard body ------------------------------------------ */
 .wizard-body {
-  flex: 1;
   padding: 28px 32px 32px;
   max-width: 820px;
   width: 100%;
@@ -239,8 +238,7 @@ body {
 
 /* --- Footer nav ------------------------------------------- */
 .wizard-footer {
-  background: #fff;
-  border-top: 1px solid var(--bp-line);
+  background: transparent;
   padding: 14px 32px;
   display: flex;
   justify-content: space-between;
