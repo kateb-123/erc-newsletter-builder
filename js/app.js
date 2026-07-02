@@ -8,7 +8,7 @@
 
 import { parseMarkdown } from './parser.js';
 import { SECTION_REGISTRY } from './model.js';
-import { renderNewsletter } from './template.js';
+import { renderNewsletter, renderProse } from './template.js';
 import { issueToMarkdown } from './serialize.js';
 import { saveState, loadState, clearState } from './state.js';
 import { getField, setField } from './editpath.js';
@@ -732,6 +732,84 @@ function humanize(key) {
 }
 
 /**
+ * Converts a contentEditable's HTML back into the markdown we store — the
+ * inverse of renderProse for the constructs the toolbar can produce:
+ * bold (**), italic (*), links ([text](url)), and line breaks.
+ */
+function htmlToMarkdown(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const walk = (node) => {
+    let md = '';
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === Node.TEXT_NODE) {
+        md += n.nodeValue;
+      } else if (n.nodeType === Node.ELEMENT_NODE) {
+        const tag = n.tagName.toLowerCase();
+        const inner = walk(n);
+        if (tag === 'b' || tag === 'strong') md += inner.trim() ? `**${inner}**` : inner;
+        else if (tag === 'i' || tag === 'em') md += inner.trim() ? `*${inner}*` : inner;
+        else if (tag === 'a') md += `[${inner}](${n.getAttribute('href') || ''})`;
+        else if (tag === 'br') md += '\n';
+        else if (tag === 'div' || tag === 'p') md += (md && !md.endsWith('\n') ? '\n' : '') + inner;
+        else md += inner;
+      }
+    });
+    return md;
+  };
+  return walk(tmp).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/**
+ * A small WYSIWYG editor for prose fields: a Bold / Italic / Link toolbar over a
+ * contentEditable region. Renders stored markdown via renderProse and reports
+ * changes back as markdown (via htmlToMarkdown). Returns a uniform field handle.
+ */
+function buildRichEditor(initialMd, onChange) {
+  const wrap = document.createElement('div');
+  wrap.className = 'rich-editor';
+
+  const editable = document.createElement('div');
+  editable.className = 'rich-editable';
+  editable.contentEditable = 'true';
+  editable.innerHTML = renderProse(initialMd || '');
+
+  const emit = () => onChange(htmlToMarkdown(editable.innerHTML));
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'rich-toolbar';
+  const mkBtn = (label, title, run, italic = false) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'rich-btn';
+    b.title = title;
+    b.textContent = label;
+    if (italic) b.style.fontStyle = 'italic';
+    // mousedown-preventDefault keeps the text selection while clicking the button.
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', () => { run(); editable.focus(); emit(); });
+    return b;
+  };
+  toolbar.appendChild(mkBtn('B', 'Bold', () => document.execCommand('bold')));
+  toolbar.appendChild(mkBtn('I', 'Italic', () => document.execCommand('italic'), true));
+  toolbar.appendChild(mkBtn('🔗', 'Add link', () => {
+    const url = window.prompt('Link URL:');
+    if (url) document.execCommand('createLink', false, url);
+  }));
+
+  editable.addEventListener('input', emit);
+
+  wrap.appendChild(toolbar);
+  wrap.appendChild(editable);
+  return {
+    el: wrap,
+    getMd: () => htmlToMarkdown(editable.innerHTML),
+    setMd: (md) => { editable.innerHTML = renderProse(md || ''); },
+    focus: () => editable.focus(),
+  };
+}
+
+/**
  * Open (or focus) an editor card for a whole item in the persistent edit
  * column. Multiple cards may be open at once; they stack in open-order. Typing
  * updates the preview live; Save commits + closes the card.
@@ -749,7 +827,7 @@ function openItemEditor(refs, iframe) {
   const existing = openCards.get(key);
   if (existing) {
     existing.card.scrollIntoView({ block: 'nearest' });
-    const first = existing.card.querySelector('input, textarea');
+    const first = existing.card.querySelector('input, textarea, [contenteditable]');
     if (first) first.focus();
     return;
   }
@@ -781,27 +859,37 @@ function openItemEditor(refs, iframe) {
     const sub = document.createElement('span');
     sub.className = 'edit-card-sublabel';
     sub.textContent = FIELD_LABELS[ref.field] || humanize(ref.field);
+    group.appendChild(sub);
+
     const isLong = ref.field === 'summary' || ref.field === 'intro' || ref.field === 'description';
-    let inputEl;
-    if (isLong) {
-      inputEl = document.createElement('textarea');
-      inputEl.className = 'edit-card-textarea';
-      inputEl.rows = 7;
-    } else {
-      inputEl = document.createElement('input');
-      inputEl.type = 'text';
-      inputEl.className = 'edit-card-input';
-    }
-    inputEl.value = getField(state.issue, ref) ?? '';
-    inputEl.addEventListener('input', () => {
-      setField(state.issue, ref, inputEl.value);
+    const onEdit = (value) => {
+      setField(state.issue, ref, value);
       scheduleSave();
       debouncedPreview();
-    });
-    group.appendChild(sub);
-    group.appendChild(inputEl);
-    card.appendChild(group);
-    fieldInputs.push({ ref, inputEl });
+    };
+
+    if (isLong) {
+      // Prose fields get a WYSIWYG editor (bold / italic / link) that stores
+      // markdown. Live-renders as the newsletter does (via renderProse).
+      const rich = buildRichEditor(getField(state.issue, ref) ?? '', onEdit);
+      group.appendChild(rich.el);
+      card.appendChild(group);
+      fieldInputs.push({ ref, get: rich.getMd, set: rich.setMd, focus: rich.focus });
+    } else {
+      const inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.className = 'edit-card-input';
+      inputEl.value = getField(state.issue, ref) ?? '';
+      inputEl.addEventListener('input', () => onEdit(inputEl.value));
+      group.appendChild(inputEl);
+      card.appendChild(group);
+      fieldInputs.push({
+        ref,
+        get: () => inputEl.value,
+        set: (v) => { inputEl.value = v; },
+        focus: () => inputEl.focus(),
+      });
+    }
   }
 
   // Footer: quiet Revert + Save (commit & close this one card).
@@ -812,10 +900,10 @@ function openItemEditor(refs, iframe) {
   revertBtn.className = 'edit-card-revert';
   revertBtn.textContent = 'Revert to original';
   revertBtn.addEventListener('click', () => {
-    for (const { ref, inputEl } of fieldInputs) {
-      const original = getField(state.baseline, ref) ?? '';
-      inputEl.value = original;
-      setField(state.issue, ref, original);
+    for (const f of fieldInputs) {
+      const original = getField(state.baseline, f.ref) ?? '';
+      f.set(original);
+      setField(state.issue, f.ref, original);
     }
     scheduleSave();
     refreshEditIframe(iframe);
@@ -834,7 +922,7 @@ function openItemEditor(refs, iframe) {
   updateColumnChrome();
 
   card.scrollIntoView({ block: 'nearest' });
-  requestAnimationFrame(() => fieldInputs[0] && fieldInputs[0].inputEl.focus());
+  requestAnimationFrame(() => fieldInputs[0] && fieldInputs[0].focus());
 }
 
 /** Close one card (commit is implicit — edits are already live). */

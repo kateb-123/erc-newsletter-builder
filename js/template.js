@@ -22,20 +22,30 @@ export function esc(s) {
  */
 const SAFE_HREF_SCHEME = /^(https?:|mailto:|#|\/)/i;
 
+/**
+ * Applies **bold** and *italic* to ALREADY-ESCAPED text. Run after esc() so the
+ * markers (`*`) survive escaping and can't corrupt generated tag/attribute HTML.
+ */
+function applyEmphasis(escaped) {
+  return escaped
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
+}
+
 export function renderProse(text) {
   if (!text) return '';
   const re = /\[([^\]]+)\]\(((?:[^()]|\([^()]*\))*)\)/g;
   let out = '', last = 0, m;
   while ((m = re.exec(text))) {
-    out += esc(text.slice(last, m.index));
+    out += applyEmphasis(esc(text.slice(last, m.index)));
     if (SAFE_HREF_SCHEME.test(m[2])) {
-      out += `<a href="${esc(m[2])}" target="_blank" rel="noopener" style="color: #500000; text-decoration: underline;">${esc(m[1])}</a>`;
+      out += `<a href="${esc(m[2])}" target="_blank" rel="noopener" style="color: #500000; text-decoration: underline;">${applyEmphasis(esc(m[1]))}</a>`;
     } else {
-      out += esc(m[1]);
+      out += applyEmphasis(esc(m[1]));
     }
     last = re.lastIndex;
   }
-  out += esc(text.slice(last));
+  out += applyEmphasis(esc(text.slice(last)));
   return out;
 }
 

@@ -30,6 +30,15 @@ test('Submit callout shows by default and is omitted when showSubmit is false', 
   assert.ok(!renderNewsletter(issue).includes(marker), 'callout should be omitted when toggled off');
 });
 
+test('renderProse renders bold and italic, escaping the rest', () => {
+  const html = renderProse('A **bold** and *italic* & <x>.');
+  assert.match(html, /<strong>bold<\/strong>/);
+  assert.match(html, /<em>italic<\/em>/);
+  assert.match(html, /&amp;/);
+  assert.match(html, /&lt;x&gt;/);
+  assert.doesNotMatch(html, /data-edit/);
+});
+
 test('renderProse linkifies markdown links and escapes the rest', () => {
   const html = renderProse('See [Cape Verde](https://x.org/cv) & <b>more</b>.');
   assert.match(html, /<a href="https:\/\/x\.org\/cv" target="_blank" rel="noopener"[^>]*>Cape Verde<\/a>/);
