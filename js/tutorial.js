@@ -108,10 +108,13 @@ class DomView {
   showTip(model) {
     this._ensure();
     this.scrim.style.display = 'block';
-    this.ring.style.display = 'block';
     this.tip.classList.remove('tut-tip--center');
-    this._target = document.querySelector(`[data-step="${model.step}"]`);
-    if (this._target) this._target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+
+    // Resolve the spotlight target: explicit selector → step section → none.
+    const targetEl = model.target
+      ? document.querySelector(model.target)
+      : (model.step ? document.querySelector(`[data-step="${model.step}"]`) : null);
+    this._target = targetEl;
 
     this.tip.style.display = 'block';
     this.tip.replaceChildren();
@@ -129,8 +132,19 @@ class DomView {
     foot.append(skip, count, next);
     this.tip.append(foot);
 
-    this._positionTo(this._target);
-    this._bindReposition();
+    if (targetEl) {
+      this.ring.style.display = 'block';
+      targetEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      this._positionTo(targetEl);
+      this._bindReposition();
+    } else {
+      // No target (e.g. the final "paste into Outlook" tip): centered card.
+      this.ring.style.display = 'none';
+      this._unbindReposition();
+      this.tip.style.top = '';
+      this.tip.style.left = '';
+      this.tip.classList.add('tut-tip--center');
+    }
 
     this._onExit = model.onExit;
     this.tip.setAttribute('tabindex', '-1');
