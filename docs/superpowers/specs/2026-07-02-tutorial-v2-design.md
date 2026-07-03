@@ -41,9 +41,9 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 | 4 | triage | `.triage-featured-label` | Feature an event | Try it — check Featured on an event to pin it to the top of the Events section. | `{event: 'event-featured', ack: 'Pinned! One featured event per issue.'}` |
 | 5 | edit | `.edit-preview-iframe` | Edit in place | Try it — click any text in the preview and fix it right there. Nothing here is permanent. | `{event: 'editor-opened', ack: 'That's the editor — change anything, it updates live.'}` |
 | 6 | edit | `.reorder-panel` | Reorder while editing | Try it — drag an item up or down from this panel, no scrolling needed. | `{event: 'panel-item-moved', ack: 'Rearranged — the preview follows along.'}` |
+| 7 | export | `.export-action-btn.btn-primary` | Copy it | Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That's a whole issue, done. | — |
 
 **Reality correction (Kate approved, planning conversation):** the app has no section on/off toggles (populated sections always show; empty ones auto-hide) and triage reordering is per-item via arrows, not per-section and not drag. Old tip 4 ("sections on/off") is replaced with the **Featured event toggle**; tip 3's copy corrected to items + arrows. The view auto-opens a `<details>` ancestor of the target (the edit reorder panel is collapsible).
-| 7 | export | `.export-action-btn.btn-primary` | Copy it | Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That's a whole issue, done. | — |
 
 - Tip 7's button reads **Finish →** and ends the tour (restore stashed issue, mark seen, return to the step the user was on). No handoff card. No centered finale tip.
 - Exact ack copy and event names above are the spec; typographic apostrophes/ellipses in all user-visible copy.
