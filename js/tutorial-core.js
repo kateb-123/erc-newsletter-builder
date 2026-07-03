@@ -3,46 +3,39 @@
  *
  * No DOM access. Everything here is unit-testable with node:test.
  * The DOM overlay lives in tutorial.js and injects real `app`/`view`
- * objects into TourController (added in a later task).
+ * objects into TourController.
  */
 
 export const SEEN_KEY = 'erc_tutorial_seen';
 
 /**
  * Ordered demo tips. Each spotlights one control (`target` = CSS selector) at
- * the given wizard `step`. Sub-tips within a step share the same `step`.
- * `target` may be null for a centered card (e.g. the final "paste into Outlook").
+ * the given wizard `step`; sub-tips within a step share the same `step`.
+ * `interactive` tips leave the page live so the user can perform the real
+ * action — when the app emits `interactive.event`, the tip re-renders with
+ * `interactive.ack`. `link` renders as an anchor under the body.
  */
 export const TOUR_TIPS = [
   { step: 'upload', target: '.template-help a', title: 'Start here',
-    body: 'First time? Your .md template lives right here — download it and fill it in with Claude.' },
-  { step: 'upload', target: '#drop-zone', title: 'Drop your file',
-    body: 'Then drag your finished .md file into this box…' },
-  { step: 'upload', target: '.drop-btn', title: '…or browse for it',
-    body: '…or click here to choose it. (For this tour we’ll use a sample newsletter.)' },
-  { step: 'triage', target: '.triage-field-input', title: 'Set the issue date',
-    body: 'This date shows up in the newsletter header.' },
-  { step: 'triage', target: '.triage-reorder-group', title: 'Reorder sections',
-    body: 'Drag, or use these arrows, to change the order sections appear in.' },
-  { step: 'triage', target: '.triage-sections-list', title: 'Turn sections on or off',
-    body: 'Every section is listed here. Uncheck anything you’re skipping this issue — turn it back on anytime.' },
+    body: 'First time? Download the .md template and fill it in with Claude.',
+    link: { href: 'docs.html', label: 'Here\'s how the .md works →' } },
+  { step: 'upload', target: '#drop-zone', title: 'Add your file',
+    body: 'Drag your finished .md into this box, or click Choose File to browse. (For this tour we\'ll use a sample newsletter.)' },
+  { step: 'triage', target: '.triage-grouped-section', title: 'Reorder items',
+    body: 'Try it — use the arrows to change the order items appear in.',
+    interactive: { event: 'triage-item-moved', ack: 'Nice — that\'s all there is to it.' } },
+  { step: 'triage', target: '.triage-featured-label', title: 'Feature an event',
+    body: 'Try it — check Featured on an event to pin it to the top of the Events section.',
+    interactive: { event: 'event-featured', ack: 'Pinned! One featured event per issue.' } },
   { step: 'edit', target: '.edit-preview-iframe', title: 'Edit in place',
-    body: 'This is your real newsletter. Click any text inside to edit it right there — nothing here is permanent.' },
-  { step: 'edit', target: '.edit-layout', title: 'Reorder while editing',
-    body: 'Prefer a bird’s-eye view? Reorder items from this panel without scrolling the preview.' },
+    body: 'Try it — click any text in the preview and fix it right there. Nothing here is permanent.',
+    interactive: { event: 'editor-opened', ack: 'That\'s the editor — change anything, it updates live.' } },
+  { step: 'edit', target: '.reorder-panel', title: 'Reorder while editing',
+    body: 'Try it — drag an item up or down from this panel, no scrolling needed.',
+    interactive: { event: 'panel-item-moved', ack: 'Rearranged — the preview follows along.' } },
   { step: 'export', target: '.export-action-btn.btn-primary', title: 'Copy it',
-    body: 'One click copies the whole newsletter to your clipboard.' },
-  { step: 'export', target: null, title: 'Paste into Outlook',
-    body: 'Last step — in Outlook, choose Insert → HTML and paste. That’s your issue, sent! 🎉' },
+    body: 'Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That\'s a whole issue, done.' },
 ];
-
-/** Short coach-mark text shown on the user’s OWN work, keyed by step. */
-export const COACH_STEPS = {
-  upload: 'Drop your real .md file here — grab the template from the link if you need it.',
-  triage: 'Set the date, reorder sections, and switch off any you’re skipping. Then Next →.',
-  edit: 'Click any text in the preview to fix it — nothing here is permanent.',
-  export: 'Copy the HTML, then paste it into Outlook with Insert → HTML.',
-};
 
 /**
  * @param {{ getItem(k:string):(string|null) }} storage
@@ -83,18 +76,17 @@ export class TourController {
     this.index = -1;
     this.stashed = null;
     this.returnStep = 'upload';
-    this._coachActive = false;
-    this._unsubscribe = null;
     this._shownStep = null;
+    this._acked = false;
+    this._unsubEvent = null;
   }
-
-  // --- Demo phase (sample data) ------------------------------------------
 
   async startDemo() {
     this.stashed = this.app.getIssueSnapshot();     // real issue or null
     this.returnStep = this.app.getCurrentStep();
     await this.app.loadSampleIssue();               // in-memory only
     this._shownStep = null;
+    this._acked = false;
     this.index = 0;
     this._showCurrent();
   }
@@ -107,11 +99,20 @@ export class TourController {
       this.app.goToStep(item.step);
       this._shownStep = item.step;
     }
+    // Hands-on tips listen for their app event until acked (or left).
+    this._unlisten();
+    if (item.interactive && !this._acked) {
+      this._unsubEvent = this.app.onEvent(item.interactive.event, () => this._ackCurrent());
+    }
     this.view.showTip({
       step: item.step,
       target: item.target,
       title: item.title,
       body: item.body,
+      link: item.link || null,
+      interactive: !!item.interactive,
+      acked: this._acked,
+      ackText: item.interactive ? item.interactive.ack : null,
       index: this.index,
       total: TOUR_TIPS.length,
       isLast: this.index === TOUR_TIPS.length - 1,
@@ -120,50 +121,37 @@ export class TourController {
     });
   }
 
+  _ackCurrent() {
+    this._unlisten();
+    this._acked = true;
+    this._showCurrent();
+  }
+
+  _unlisten() {
+    if (this._unsubEvent) {
+      this._unsubEvent();
+      this._unsubEvent = null;
+    }
+  }
+
   next() {
+    this._acked = false;
     if (this.index >= TOUR_TIPS.length - 1) {
-      this.finishDemo();
+      this.endDemo();
       return;
     }
     this.index += 1;
     this._showCurrent();
   }
 
-  finishDemo() {
-    this.view.showHandoff({
-      onGuide: () => { this.endDemo(); this.startCoach(); },
-      onDecline: () => this.endDemo(),
-    });
-  }
-
   endDemo() {
+    this._unlisten();
+    this._acked = false;
     this.view.hideAll();
     this.app.setIssue(this.stashed);      // restore real work (or null)
     this.app.goToStep(this.returnStep);
     this.index = -1;
     this._shownStep = null;
     markSeen(this.storage);
-  }
-
-  // --- Coach phase (opt-in, real work) -----------------------------------
-
-  startCoach() {
-    this._coachActive = true;
-    this._unsubscribe = this.app.onStepChange((step) => this._coachTick(step));
-    this._coachTick(this.app.getCurrentStep());
-  }
-
-  _coachTick(step) {
-    if (!this._coachActive) return;
-    const body = COACH_STEPS[step];
-    if (!body) return;
-    this.view.showCoach({ step, body, onStop: () => this.stopCoach() });
-  }
-
-  stopCoach() {
-    this._coachActive = false;
-    if (this._unsubscribe) this._unsubscribe();
-    this._unsubscribe = null;
-    this.view.hideCoach();
   }
 }
