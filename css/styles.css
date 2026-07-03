@@ -1215,3 +1215,105 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- Tutorial -------------------------------------------------------- */
+.tut-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 26, 43, 0.55);
+  z-index: 900;
+}
+.tut-ring {
+  display: none;
+  position: absolute;
+  z-index: 901;
+  border: 3px solid var(--bp-primary);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(23, 26, 43, 0.0);
+  pointer-events: none;
+  transition: top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+.tut-tip {
+  display: none;
+  position: absolute;
+  z-index: 902;
+  max-width: 340px;
+  background: #fff;
+  border: 1px solid var(--bp-card-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 32px rgba(23, 26, 43, 0.22);
+  font-family: var(--bp-body-font);
+}
+.tut-tip--center {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.tut-tip__title {
+  margin: 0 0 6px;
+  font-family: var(--bp-heading-font);
+  font-size: 1.1rem;
+  color: var(--bp-ink);
+}
+.tut-tip__body {
+  margin: 0 0 14px;
+  color: var(--bp-body);
+  line-height: 1.45;
+}
+.tut-tip__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tut-tip__foot--center { justify-content: center; }
+.tut-tip__count {
+  font-size: 0.8rem;
+  color: var(--bp-muted);
+}
+.tut-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--bp-muted);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.tut-link:hover { color: var(--bp-body); }
+.tut-replay {
+  margin-left: auto;
+  background: var(--bp-primary-tint);
+  color: var(--bp-primary-active);
+  border: 1px solid var(--bp-card-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.tut-replay:hover { background: var(--bp-primary); color: #fff; }
+.tut-replay:focus-visible { outline: none; box-shadow: var(--bp-focus-ring); }
+.tut-coach {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 903;
+  max-width: 320px;
+  background: var(--bp-primary-tint);
+  border: 1px solid var(--bp-primary);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(23, 26, 43, 0.18);
+  font-family: var(--bp-body-font);
+}
+.tut-coach__body {
+  margin: 0 0 8px;
+  color: var(--bp-ink);
+  line-height: 1.4;
+}
+.tut-coach__stop { color: var(--bp-primary-active); }

@@ -13,6 +13,7 @@ import { issueToMarkdown } from './serialize.js';
 import { saveState, loadState, clearState } from './state.js';
 import { getField, setField } from './editpath.js';
 import { computePreviewScale } from './preview.js';
+import { initTutorial } from './tutorial.js';
 
 // ---------------------------------------------------------------------------
 // State
@@ -1565,3 +1566,4 @@ window.__clearState = clearState;
 window.__tutorialApi = tutorialApi;
 goTo('upload');
 maybeShowRestoreBanner();
+initTutorial(tutorialApi);
