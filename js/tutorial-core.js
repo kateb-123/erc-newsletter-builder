@@ -63,3 +63,94 @@ export function markSeen(storage) {
     // private mode / quota — the tour will simply re-offer next visit
   }
 }
+
+/**
+ * Orchestrates the tutorial lifecycle against injected interfaces.
+ * Holds NO DOM references — the `view` object does all rendering.
+ */
+export class TourController {
+  /**
+   * @param {{ app: object, view: object, storage: object }} deps
+   */
+  constructor({ app, view, storage }) {
+    this.app = app;
+    this.view = view;
+    this.storage = storage;
+    this.index = -1;
+    this.stashed = null;
+    this.returnStep = 'upload';
+    this._coachActive = false;
+    this._unsubscribe = null;
+  }
+
+  // --- Demo phase (sample data) ------------------------------------------
+
+  async startDemo() {
+    this.stashed = this.app.getIssueSnapshot();     // real issue or null
+    this.returnStep = this.app.getCurrentStep();
+    await this.app.loadSampleIssue();               // in-memory only
+    this.index = 0;
+    this._showCurrent();
+  }
+
+  _showCurrent() {
+    const item = TOUR_STEPS[this.index];
+    this.app.goToStep(item.step);
+    this.view.showTip({
+      step: item.step,
+      title: item.title,
+      body: item.body,
+      index: this.index,
+      total: TOUR_STEPS.length,
+      isLast: this.index === TOUR_STEPS.length - 1,
+      onNext: () => this.next(),
+      onExit: () => this.endDemo(),
+    });
+  }
+
+  next() {
+    if (this.index >= TOUR_STEPS.length - 1) {
+      this.finishDemo();
+      return;
+    }
+    this.index += 1;
+    this._showCurrent();
+  }
+
+  finishDemo() {
+    this.view.showHandoff({
+      onGuide: () => { this.endDemo(); this.startCoach(); },
+      onDecline: () => this.endDemo(),
+    });
+  }
+
+  endDemo() {
+    this.view.hideAll();
+    this.app.setIssue(this.stashed);      // restore real work (or null)
+    this.app.goToStep(this.returnStep);
+    this.index = -1;
+    markSeen(this.storage);
+  }
+
+  // --- Coach phase (opt-in, real work) -----------------------------------
+
+  startCoach() {
+    this._coachActive = true;
+    this._unsubscribe = this.app.onStepChange((step) => this._coachTick(step));
+    this._coachTick(this.app.getCurrentStep());
+  }
+
+  _coachTick(step) {
+    if (!this._coachActive) return;
+    const body = COACH_STEPS[step];
+    if (!body) return;
+    this.view.showCoach({ step, body, onStop: () => this.stopCoach() });
+  }
+
+  stopCoach() {
+    this._coachActive = false;
+    if (this._unsubscribe) this._unsubscribe();
+    this._unsubscribe = null;
+    this.view.hideCoach();
+  }
+}
