@@ -110,10 +110,14 @@ class DomView {
     this.scrim.style.display = 'block';
     this.tip.classList.remove('tut-tip--center');
 
-    // Resolve the spotlight target: explicit selector → step section → none.
-    const targetEl = model.target
-      ? document.querySelector(model.target)
-      : (model.step ? document.querySelector(`[data-step="${model.step}"]`) : null);
+    // Resolve the spotlight target: explicit selector, falling back to the
+    // step section if the selector matches nothing. A null target means
+    // "no spotlight" — centered card.
+    let targetEl = null;
+    if (model.target) {
+      targetEl = document.querySelector(model.target)
+        || (model.step ? document.querySelector(`[data-step="${model.step}"]`) : null);
+    }
     this._target = targetEl;
 
     this.tip.style.display = 'block';
