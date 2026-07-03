@@ -25,6 +25,7 @@ class DomView {
     this.coach = null;
     this._reposition = null;
     this._target = null;
+    this._onExit = null;
   }
 
   _ensure() {
@@ -32,7 +33,21 @@ class DomView {
     this.scrim = el('div', 'tut-scrim');
     this.ring = el('div', 'tut-ring');
     this.tip = el('div', 'tut-tip');
+    this.tip.setAttribute('role', 'dialog');
+    this.tip.setAttribute('aria-modal', 'true');
     document.body.append(this.scrim, this.ring, this.tip);
+
+    // Click the dimmed backdrop to exit.
+    this.scrim.addEventListener('click', () => this._onExit && this._onExit());
+
+    // Esc exits while any overlay card is open.
+    this._keyHandler = (e) => {
+      if (e.key === 'Escape' && this.tip.style.display === 'block') {
+        e.preventDefault();
+        this._onExit && this._onExit();
+      }
+    };
+    document.addEventListener('keydown', this._keyHandler);
   }
 
   _positionTo(target) {
@@ -102,6 +117,10 @@ class DomView {
 
     this._positionTo(this._target);
     this._bindReposition();
+
+    this._onExit = model.onExit;
+    this.tip.setAttribute('tabindex', '-1');
+    this.tip.focus();
   }
 
   _centerCard(title, body) {
@@ -117,6 +136,10 @@ class DomView {
     this.tip.replaceChildren();
     this.tip.append(el('h3', 'tut-tip__title', title));
     this.tip.append(el('p', 'tut-tip__body', body));
+
+    this._onExit = null; // welcome/handoff require an explicit button choice
+    this.tip.setAttribute('tabindex', '-1');
+    this.tip.focus();
   }
 
   showWelcome(model) {
@@ -166,6 +189,7 @@ class DomView {
   hideAll() {
     this._unbindReposition();
     this._target = null;
+    this._onExit = null;
     if (this.scrim) this.scrim.style.display = 'none';
     if (this.ring) this.ring.style.display = 'none';
     if (this.tip) {
