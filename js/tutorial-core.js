@@ -82,6 +82,7 @@ export class TourController {
   }
 
   async startDemo() {
+    if (this.app.setDemoActive) this.app.setDemoActive(true);
     this.stashed = this.app.getIssueSnapshot();     // real issue or null
     this.returnStep = this.app.getCurrentStep();
     await this.app.loadSampleIssue();               // in-memory only
@@ -150,6 +151,7 @@ export class TourController {
     this.view.hideAll();
     this.app.setIssue(this.stashed);      // restore real work (or null)
     this.app.goToStep(this.returnStep);
+    if (this.app.setDemoActive) this.app.setDemoActive(false);
     this.index = -1;
     this._shownStep = null;
     markSeen(this.storage);

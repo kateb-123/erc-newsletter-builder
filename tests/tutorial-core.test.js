@@ -59,7 +59,7 @@ test('shouldAutoLaunch fails open when storage throws', () => {
 
 /** Fake app that records calls, simulates navigation, and fires tour events. */
 function fakeApp(initialIssue = null) {
-  const calls = { loadSample: 0, setIssue: [], goTo: [] };
+  const calls = { loadSample: 0, setIssue: [], goTo: [], demoActive: [] };
   let current = 'upload';
   const stepListeners = new Set();
   const eventListeners = new Map();
@@ -69,6 +69,7 @@ function fakeApp(initialIssue = null) {
     getCurrentStep() { return current; },
     getIssueSnapshot() { return initialIssue; },
     setIssue(issue) { calls.setIssue.push(issue); },
+    setDemoActive(on) { calls.demoActive.push(on); },
     async loadSampleIssue() { calls.loadSample += 1; },
     onStepChange(cb) { stepListeners.add(cb); return () => stepListeners.delete(cb); },
     onEvent(name, cb) {
@@ -116,6 +117,7 @@ test('startDemo stashes real issue, loads sample, shows first tip', async () => 
   assert.equal(view.seen.tip.index, 0);
   assert.equal(view.seen.tip.total, TOUR_TIPS.length);
   assert.equal(view.seen.tip.acked, false);
+  assert.deepEqual(app.calls.demoActive, [true], 'demo mode on during the tour');
 });
 
 test('finishing the last tip restores the issue, marks seen, returns to start step', async () => {
@@ -133,6 +135,7 @@ test('finishing the last tip restores the issue, marks seen, returns to start st
   assert.equal(app.calls.setIssue.at(-1), REAL);
   assert.equal(storage.getItem(SEEN_KEY), 'true');
   assert.equal(view.seen.hidden, true);
+  assert.deepEqual(app.calls.demoActive, [true, false], 'demo mode off after restore');
 });
 
 test('an interactive tip acks on its event, then unsubscribes', async () => {

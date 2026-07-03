@@ -59,8 +59,12 @@ function debounce(fn, wait) {
   };
 }
 
+/** True while the tutorial demo drives the app with sample data. */
+let demoActive = false;
+
 /** Schedule a debounced save of the current issue to localStorage. */
 const scheduleSave = debounce(() => {
+  if (demoActive) return; // demo interactions must never persist sample data
   if (state.issue) saveState(state.issue);
 }, 400);
 
@@ -1552,6 +1556,9 @@ const tutorialApi = {
     const set = tutorialEventListeners.get(name);
     set.add(cb);
     return () => set.delete(cb);
+  },
+  setDemoActive(on) {
+    demoActive = !!on;
   },
   getIssueSnapshot() {
     return state.issue ? structuredClone(state.issue) : null;
