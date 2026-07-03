@@ -39,14 +39,27 @@ class DomView {
     if (!target) return;
     const r = target.getBoundingClientRect();
     const pad = 8;
+    // Ring hugs the target in document coordinates.
     Object.assign(this.ring.style, {
       top: `${r.top - pad + window.scrollY}px`,
       left: `${r.left - pad + window.scrollX}px`,
       width: `${r.width + pad * 2}px`,
       height: `${r.height + pad * 2}px`,
     });
-    this.tip.style.top = `${r.bottom + 12 + window.scrollY}px`;
-    this.tip.style.left = `${Math.max(16, r.left + window.scrollX)}px`;
+    // Tip is position:fixed — clamp it fully within the viewport.
+    const margin = 16;
+    const tipRect = this.tip.getBoundingClientRect();
+    const tw = tipRect.width || 320;
+    const th = tipRect.height || 160;
+    let top = r.bottom + 12;                       // prefer just below the target
+    if (top + th > window.innerHeight - margin) {
+      top = r.top - th - 12;                        // otherwise place above it
+    }
+    top = Math.min(Math.max(margin, top), window.innerHeight - th - margin);
+    let left = Math.max(margin, r.left);
+    left = Math.min(left, window.innerWidth - tw - margin);
+    this.tip.style.top = `${top}px`;
+    this.tip.style.left = `${left}px`;
   }
 
   _bindReposition() {
@@ -69,8 +82,7 @@ class DomView {
     this.ring.style.display = 'block';
     this.tip.classList.remove('tut-tip--center');
     this._target = document.querySelector(`[data-step="${model.step}"]`);
-    this._positionTo(this._target);
-    this._bindReposition();
+    if (this._target) this._target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
     this.tip.style.display = 'block';
     this.tip.replaceChildren();
@@ -87,6 +99,9 @@ class DomView {
     next.addEventListener('click', model.onNext);
     foot.append(skip, count, next);
     this.tip.append(foot);
+
+    this._positionTo(this._target);
+    this._bindReposition();
   }
 
   _centerCard(title, body) {
