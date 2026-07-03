@@ -33,6 +33,13 @@ const state = {
 /** Listeners notified whenever the wizard step changes (used by the tutorial). */
 const stepChangeListeners = new Set();
 
+/** Tutorial event bus: named one-shot signals the tour can subscribe to. */
+const tutorialEventListeners = new Map();
+function emitTutorialEvent(name) {
+  const set = tutorialEventListeners.get(name);
+  if (set) set.forEach((cb) => cb());
+}
+
 // ---------------------------------------------------------------------------
 // Autosave helpers
 // ---------------------------------------------------------------------------
@@ -443,6 +450,7 @@ function renderTriage() {
                 [allItems[secIdx - 1], allItems[secIdx]] = [allItems[secIdx], allItems[secIdx - 1]];
                 renderSectionItems();
                 scheduleSave();
+                emitTutorialEvent('triage-item-moved');
               }
             });
 
@@ -459,6 +467,7 @@ function renderTriage() {
                 [allItems[secIdx], allItems[secIdx + 1]] = [allItems[secIdx + 1], allItems[secIdx]];
                 renderSectionItems();
                 scheduleSave();
+                emitTutorialEvent('triage-item-moved');
               }
             });
 
@@ -483,6 +492,7 @@ function renderTriage() {
                 if (!wasFeatured) item.featured = true;
                 renderSectionItems();
                 scheduleSave();
+                emitTutorialEvent('event-featured');
               });
 
               featLabel.appendChild(featCb);
@@ -684,6 +694,7 @@ function wireIframeEditing(iframe, editStepContainer) {
     if (refs.length) {
       openItemEditor(refs, iframe);
       flashItem(doc, section, item);
+      emitTutorialEvent('editor-opened');
     }
   });
 }
@@ -1115,6 +1126,7 @@ function buildReorderPanel(iframe) {
             render();
             refreshEditIframe(iframe);
             scheduleSave();
+            emitTutorialEvent('panel-item-moved');
           });
 
           listEl.appendChild(rowEl);
@@ -1534,6 +1546,12 @@ const tutorialApi = {
   onStepChange(cb) {
     stepChangeListeners.add(cb);
     return () => stepChangeListeners.delete(cb);
+  },
+  onEvent(name, cb) {
+    if (!tutorialEventListeners.has(name)) tutorialEventListeners.set(name, new Set());
+    const set = tutorialEventListeners.get(name);
+    set.add(cb);
+    return () => set.delete(cb);
   },
   getIssueSnapshot() {
     return state.issue ? structuredClone(state.issue) : null;
