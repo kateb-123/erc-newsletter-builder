@@ -22,11 +22,11 @@ class DomView {
     this.scrim = null;
     this.ring = null;
     this.tip = null;
-    this.coach = null;
     this._reposition = null;
     this._target = null;
     this._onExit = null;
     this._ringPrimed = false;
+    this._cutout = false;
   }
 
   _ensure() {
@@ -65,6 +65,20 @@ class DomView {
       height: `${r.height + pad * 2}px`,
     });
     if (!animate) { void this.ring.offsetWidth; this.ring.style.transition = ''; }
+    // Hands-on tips: cut a real hole in the fixed-position scrim over the
+    // target. clip-path clips hit-testing too, so pointer events inside the
+    // hole reach the live control underneath (the ring is pointer-events:none).
+    if (this._cutout) {
+      const t = r.top - pad;
+      const l = r.left - pad;
+      const b = r.bottom + pad;
+      const rt = r.right + pad;
+      this.scrim.style.clipPath =
+        'polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, '
+        + `${l}px ${t}px, ${l}px ${b}px, ${rt}px ${b}px, ${rt}px ${t}px, ${l}px ${t}px)`;
+    } else {
+      this.scrim.style.clipPath = '';
+    }
     // Tip is position:fixed — clamp it fully within the viewport.
     const margin = 16;
     const tipRect = this.tip.getBoundingClientRect();
@@ -123,11 +137,26 @@ class DomView {
         || (model.step ? document.querySelector(`[data-step="${model.step}"]`) : null);
     }
     this._target = targetEl;
+    this._cutout = !!(model.interactive && targetEl);
+
+    // A collapsed <details> ancestor (the edit reorder panel) must be open
+    // to be seen and tried.
+    const details = targetEl && targetEl.closest('details');
+    if (details) details.open = true;
 
     this.tip.style.display = 'block';
     this.tip.replaceChildren();
     this.tip.append(el('h3', 'tut-tip__title', model.title));
-    this.tip.append(el('p', 'tut-tip__body', model.body));
+    const body = el('p', 'tut-tip__body', model.acked ? model.ackText : model.body);
+    if (model.acked) body.classList.add('tut-tip__body--acked');
+    this.tip.append(body);
+    if (model.link && !model.acked) {
+      const a = el('a', 'tut-tip__link', model.link.label);
+      a.href = model.link.href;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      this.tip.append(a);
+    }
 
     const foot = el('div', 'tut-tip__foot');
     const skip = el('button', 'tut-link', 'Skip tour');
@@ -136,6 +165,7 @@ class DomView {
     const count = el('span', 'tut-tip__count', `${model.index + 1} of ${model.total}`);
     const next = el('button', 'btn btn-primary tut-tip__next', model.isLast ? 'Finish →' : 'Next →');
     next.type = 'button';
+    if (model.acked) next.classList.add('tut-tip__next--go');
     next.addEventListener('click', model.onNext);
     foot.append(skip, count, next);
     this.tip.append(foot);
@@ -147,19 +177,25 @@ class DomView {
       this._ringPrimed = true;
       this._bindReposition();
     } else {
-      // No target (e.g. the final "paste into Outlook" tip): centered card.
+      // No usable target: centered card.
       this.ring.style.display = 'none';
       this._ringPrimed = false;
       this._unbindReposition();
+      this.scrim.style.clipPath = '';
       this.tip.style.top = '';
       this.tip.style.left = '';
       this.tip.classList.add('tut-tip--center');
     }
 
     this._onExit = model.onExit;
-    this.tip.setAttribute('tabindex', '-1');
-    this.tip.focus();
-    this._setBackgroundInert(true);
+    // Hands-on tips keep the page live; passive tips lock it down.
+    this._setBackgroundInert(!model.interactive);
+    // Focus the card once per tip — never steal focus back on the ack
+    // re-render (the user's pointer/focus is on the control they just used).
+    if (!model.acked) {
+      this.tip.setAttribute('tabindex', '-1');
+      this.tip.focus();
+    }
 
     // Re-trigger the cross-fade each time the tip content changes.
     this.tip.style.animation = 'none';
@@ -200,41 +236,12 @@ class DomView {
     this.tip.append(foot);
   }
 
-  showHandoff(model) {
-    this._centerCard('You’re ready! 🎉', 'Want me to guide you through your first real newsletter?');
-    const foot = el('div', 'tut-tip__foot tut-tip__foot--center');
-    const no = el('button', 'btn btn-secondary', 'No thanks');
-    no.type = 'button';
-    no.addEventListener('click', model.onDecline);
-    const yes = el('button', 'btn btn-primary', 'Yes, guide me');
-    yes.type = 'button';
-    yes.addEventListener('click', model.onGuide);
-    foot.append(no, yes);
-    this.tip.append(foot);
-  }
-
-  showCoach(model) {
-    if (!this.coach) {
-      this.coach = el('div', 'tut-coach');
-      document.body.append(this.coach);
-    }
-    this.coach.style.display = 'block';
-    this.coach.replaceChildren();
-    this.coach.append(el('p', 'tut-coach__body', model.body));
-    const stop = el('button', 'tut-link tut-coach__stop', '✕ Stop guiding');
-    stop.type = 'button';
-    stop.addEventListener('click', model.onStop);
-    this.coach.append(stop);
-  }
-
-  hideCoach() {
-    if (this.coach) this.coach.style.display = 'none';
-  }
-
   hideAll() {
     this._unbindReposition();
     this._target = null;
     this._ringPrimed = false;
+    this._cutout = false;
+    if (this.scrim) this.scrim.style.clipPath = '';
     this._onExit = null;
     if (this.scrim) this.scrim.style.display = 'none';
     if (this.ring) this.ring.style.display = 'none';

@@ -1298,26 +1298,23 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
 }
 .tut-replay:hover { background: var(--bp-primary); color: #fff; }
 .tut-replay:focus-visible { outline: none; box-shadow: var(--bp-focus-ring); }
-.tut-coach {
-  display: none;
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 903;
-  max-width: 320px;
-  background: var(--bp-primary-tint);
-  border: 1px solid var(--bp-primary);
-  border-radius: 12px;
-  padding: 14px 16px;
-  box-shadow: 0 8px 24px rgba(23, 26, 43, 0.18);
-  font-family: var(--bp-body-font);
+.tut-tip__link {
+  display: inline-block;
+  margin: -4px 0 10px;
+  font-size: 0.9rem;
+  color: var(--bp-primary);
+  text-decoration: underline;
 }
-.tut-coach__body {
-  margin: 0 0 8px;
-  color: var(--bp-ink);
-  line-height: 1.4;
+.tut-tip__body--acked {
+  color: var(--bp-primary-active);
+  font-weight: 600;
 }
-.tut-coach__stop { color: var(--bp-primary-active); }
+.tut-tip__next--go {
+  animation: tut-next-pulse 0.9s ease 2;
+}
+@keyframes tut-next-pulse {
+  50% { transform: scale(1.06); }
+}
 @keyframes tut-tip-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -1325,4 +1322,5 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
 @media (prefers-reduced-motion: reduce) {
   .tut-ring { transition: none !important; }
   .tut-tip { animation: none !important; }
+  .tut-tip__next--go { animation: none !important; }
 }
