@@ -26,6 +26,7 @@ class DomView {
     this._reposition = null;
     this._target = null;
     this._onExit = null;
+    this._ringPrimed = false;
   }
 
   _ensure() {
@@ -50,25 +51,28 @@ class DomView {
     document.addEventListener('keydown', this._keyHandler);
   }
 
-  _positionTo(target) {
+  _positionTo(target, animate = true) {
     if (!target) return;
     const r = target.getBoundingClientRect();
     const pad = 8;
-    // Ring hugs the target in document coordinates.
+    // Ring hugs the target in document coordinates. Snap (no transition) when
+    // animate is false — first spotlight of a run, and during resize/scroll.
+    if (!animate) this.ring.style.transition = 'none';
     Object.assign(this.ring.style, {
       top: `${r.top - pad + window.scrollY}px`,
       left: `${r.left - pad + window.scrollX}px`,
       width: `${r.width + pad * 2}px`,
       height: `${r.height + pad * 2}px`,
     });
+    if (!animate) { void this.ring.offsetWidth; this.ring.style.transition = ''; }
     // Tip is position:fixed — clamp it fully within the viewport.
     const margin = 16;
     const tipRect = this.tip.getBoundingClientRect();
     const tw = tipRect.width || 320;
     const th = tipRect.height || 160;
-    let top = r.bottom + 12;                       // prefer just below the target
+    let top = r.bottom + 12;
     if (top + th > window.innerHeight - margin) {
-      top = r.top - th - 12;                        // otherwise place above it
+      top = r.top - th - 12;
     }
     top = Math.min(Math.max(margin, top), window.innerHeight - th - margin);
     let left = Math.max(margin, r.left);
@@ -79,7 +83,7 @@ class DomView {
 
   _bindReposition() {
     this._unbindReposition();
-    this._reposition = () => { if (this._target) this._positionTo(this._target); };
+    this._reposition = () => { if (this._target) this._positionTo(this._target, false); };
     window.addEventListener('resize', this._reposition);
     window.addEventListener('scroll', this._reposition, true);
   }
@@ -139,7 +143,8 @@ class DomView {
     if (targetEl) {
       this.ring.style.display = 'block';
       targetEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      this._positionTo(targetEl);
+      this._positionTo(targetEl, this._ringPrimed);
+      this._ringPrimed = true;
       this._bindReposition();
     } else {
       // No target (e.g. the final "paste into Outlook" tip): centered card.
@@ -154,6 +159,11 @@ class DomView {
     this.tip.setAttribute('tabindex', '-1');
     this.tip.focus();
     this._setBackgroundInert(true);
+
+    // Re-trigger the cross-fade each time the tip content changes.
+    this.tip.style.animation = 'none';
+    void this.tip.offsetWidth;
+    this.tip.style.animation = '';
   }
 
   _centerCard(title, body) {
@@ -223,6 +233,7 @@ class DomView {
   hideAll() {
     this._unbindReposition();
     this._target = null;
+    this._ringPrimed = false;
     this._onExit = null;
     if (this.scrim) this.scrim.style.display = 'none';
     if (this.ring) this.ring.style.display = 'none';

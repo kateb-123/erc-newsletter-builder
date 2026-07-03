@@ -1232,7 +1232,7 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
   border-radius: 12px;
   box-shadow: 0 0 0 9999px rgba(23, 26, 43, 0.0);
   pointer-events: none;
-  transition: top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease;
+  transition: top 0.35s cubic-bezier(0.22, 1, 0.36, 1), left 0.35s cubic-bezier(0.22, 1, 0.36, 1), width 0.35s cubic-bezier(0.22, 1, 0.36, 1), height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .tut-tip {
   display: none;
@@ -1245,6 +1245,7 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
   padding: 18px 20px;
   box-shadow: 0 12px 32px rgba(23, 26, 43, 0.22);
   font-family: var(--bp-body-font);
+  animation: tut-tip-in 0.22s ease;
 }
 .tut-tip--center {
   top: 50% !important;
@@ -1317,3 +1318,11 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
   line-height: 1.4;
 }
 .tut-coach__stop { color: var(--bp-primary-active); }
+@keyframes tut-tip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tut-ring { transition: none !important; }
+  .tut-tip { animation: none !important; }
+}
