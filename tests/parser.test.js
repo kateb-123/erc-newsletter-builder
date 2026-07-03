@@ -66,16 +66,16 @@ test('real contributor sample parses with no warnings and expected counts', () =
   assert.equal(issue.date, 'July 01, 2026');
   assert.match(issue.intro, /^Howdy!/);
   const count = k => issue.sections[k].items.length;
-  assert.equal(count('research'), 3);        // 2 briefs + 1 report
-  assert.equal(count('spotlight'), 4);       // P&O 1, Events 2, Happy Hours (This & That) 1
-  assert.equal(count('events'), 5);          // TAMU 2 + off-campus 3
-  assert.equal(count('opportunities'), 6);   // F&G 2 + Fellowships 2 (dupe group) + Calls 2
-  assert.equal(count('policy'), 6);          // WP 3 + peer 1 + misc 2
-  assert.equal(count('headlines'), 6);       // federal 3 + texas 3
+  assert.equal(count('research'), 5);        // 3 briefs + 2 reports
+  assert.equal(count('spotlight'), 6);       // P&O 2, Events 3, Happy Hours (This & That) 1
+  assert.equal(count('events'), 7);          // TAMU 3 + off-campus 4
+  assert.equal(count('opportunities'), 8);   // F&G 3 + Fellowships 2 + Calls 3
+  assert.equal(count('policy'), 9);          // WP 4 + peer 2 + misc 3
+  assert.equal(count('headlines'), 8);       // federal 4 + texas 4
   // group wiring sanity
   const rgroups = issue.sections.research.items.map(i => i.group);
-  assert.deepEqual(rgroups.slice().sort(), ['brief', 'brief', 'report']);
-  // duplicate same-name groups merge into one group key
+  assert.deepEqual(rgroups.slice().sort(), ['brief', 'brief', 'brief', 'report', 'report']);
+  // one Fellowships & Training group with 2 items
   const fellows = issue.sections.opportunities.items.filter(i => i.group === 'fellowships');
   assert.equal(fellows.length, 2);
 });

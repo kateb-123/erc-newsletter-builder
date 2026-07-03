@@ -4,327 +4,444 @@ date: July 01, 2026
 
 # Intro:
 
-Howdy\! We hope everyone is enjoying their summer — and the World Cup excitement sweeping across the country. As a small (but growing\!) center ourselves, we've loved cheering on the tournament's smallest-ever qualifiers, Curaçao and [Cape Verde.](https://en.wikipedia.org/wiki/Cape_Verde) Speaking of teams worth following, here is what we've been working on: new research briefs, upcoming events, funding opportunities, a roundup of recent education research, and the policy stories we're following.
-
-# 
+Howdy! We hope everyone is enjoying their summer. This sample issue shows everything the newsletter can hold — research briefs, upcoming events, funding opportunities, a roundup of recent education research, and the policy stories we follow. Poke around: nothing here is real, and nothing you do to it is permanent.
 
 # Featured Research
 
 ## Research Brief
 
-### Brief \#1
+### Brief #1
 
-**Title:** Economics of Encouragement: Can a Single Email Shape What Students Study?
+**Title:** The Nudge Files: Can One Postcard Boost FAFSA Completion?
 
-**Authors:** Olivia Edwards & John Meer
+**Authors:** Maya Chen & Jordan Ellis
 
-**Summary:** Can a single email shape what students study? Among 10,000+ students in a large introductory economics course at Texas A\&M, high-performing students who received a short note from a professor encouraging further study were more likely to enroll in the next economics course. The effect was largest for first-generation and underrepresented students — a low-cost nudge with real equity potential.
+**Summary:** Can a single postcard change a student’s college plans? Among 8,000 seniors across 40 fictional districts, students who received a plain-language FAFSA reminder were 9 percentage points more likely to complete the form — with the largest gains for first-generation students. A low-cost nudge with real equity potential.
 
-**Url:** [https://drive.google.com/file/d/1bhYRHaQLwsJ-9F5\_5TN8BpW96Lz5rmSV/view?usp=sharing](https://drive.google.com/file/d/1bhYRHaQLwsJ-9F5_5TN8BpW96Lz5rmSV/view?usp=sharing) 
+**Url:** [Read the brief](https://example.com/briefs/nudge-files)
 
-### Brief \#2
+### Brief #2
 
-**Title:** Distance to Degrees: How Community College Access Shapes Educational Opportunity in Texas
+**Title:** Miles to Go: How Bus-Route Cuts Shape School Attendance
 
-**Authors:** Riley K. Acton, Kalena E. Cortes, Lois Miller & Camila Morales
+**Authors:** Priya Natarajan, Sam Okafor & Lee Whitfield
 
-**Summary:** For many Texas students, the path to a college degree runs through a community college — but what happens when that college is an hour away? Using administrative data on more than 1.5 million high school graduates (2013–2017), this brief shows that students in "community college deserts" (more than 30 minutes from the nearest public institution) enroll and graduate at significantly lower rates. The effects fall hardest on Hispanic and lower-income students and persist for up to eight years, driven by distance, not by differences in academic preparation.
+**Summary:** When the fictional town of Riverbend cut four bus routes, attendance fell 6% among students living farthest from school — and stayed down for two years. Using (made-up) administrative data on 120,000 students, this brief shows the burden fell hardest on lower-income families, driven by distance, not motivation.
 
-**Url:** [https://drive.google.com/file/d/1YzVlGS5hH5RRvfacn851qWqNolkci0HF/preview](https://drive.google.com/file/d/1YzVlGS5hH5RRvfacn851qWqNolkci0HF/preview) 
+**Url:** [Read the brief](https://example.com/briefs/miles-to-go)
+
+### Brief #3
+
+**Title:** Small Rooms, Big Gains: Class-Size Reductions in Riverbend ISD
+
+**Authors:** Daniela Osei & Marcus Whitfield
+
+**Summary:** A fictional class-size pilot trimmed early-grade rosters from 24 to 17 students across 30 Riverbend ISD campuses. Reading scores rose modestly for all students but jumped for English learners — a reminder that “more attention per student” isn’t just a slogan. Costs ran about $1,400 per pupil per year.
+
+**Url:** [Read the brief](https://example.com/briefs/small-rooms-big-gains)
 
 ## Report
 
-### Report \#1
+### Report #1
 
-**Title:** Alternative Teacher Certification in Texas and Beyond: An Evaluation of ITeach
+**Title:** Teacher Pipelines in the Prairie: An Evaluation of the Riverbend Residency
 
-**Authors:** Kate Barnes, Andy Kwok, Brenden Bartannen
+**Authors:** Alex Romero
 
-**Summary:** Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+**Summary:** A two-year evaluation of a fictional teacher-residency program finds residents stayed in the classroom at higher rates than traditionally certified peers — 88% versus 71% after three years — and rated their preparation markedly higher. Costs per retained teacher were roughly half those of emergency certification pathways.
 
-**Url:** [https://drive.google.com/file/d/1YzVlGS5hH5RRvfacn851qWqNolkci0HF/preview](https://drive.google.com/file/d/1YzVlGS5hH5RRvfacn851qWqNolkci0HF/preview) 
+**Url:** [Read the report](https://example.com/reports/prairie-pipelines)
+
+### Report #2
+
+**Title:** Counting Chairs: A Statewide Audit of Pre-K Seat Availability
+
+**Authors:** Farrah Nkemelu & Owen Bradshaw
+
+**Summary:** This fictional statewide audit finds pre-K seats fall short of demand in 60% of sampled counties, with rural counties facing waitlists twice as long as urban ones. The report models three expansion scenarios and estimates the price tag for closing the gap by 2030.
+
+**Url:** [Read the report](https://example.com/reports/counting-chairs)
 
 # ERC Spotlight
 
 ## Programs & Opportunities
 
-### P\&O \#1
+### P&O #1
 
-**Title:** ERC Graduate Research Program — Summer 2026
+**Title:** ERC Graduate Research Program — Fall 2026
 
-**Metaline:** Faculty & students apply separately — deadline April 15, 2026
+**Metaline:** Faculty & students apply separately — deadline August 15, 2026
 
-**Summary:** The ERC pairs doctoral students with faculty for a flexible, summer-only research collaboration focused on authentic data collection, analysis, and scholarly dissemination. Designed to supplement, not replace, existing assistantships.
+**Summary:** The ERC pairs doctoral students with faculty for a flexible research collaboration focused on data collection, analysis, and scholarly dissemination. Designed to supplement, not replace, existing assistantships. (Sample text — links go nowhere.)
 
-**Url:** [https://docs.google.com/forms/u/1/d/e/1FAIpQLSfVhfp7ac2dg1LT0qMtvD8xhkTdgY4CnmOrsDF2il7rDSTr\_g/viewform?usp=header](https://docs.google.com/forms/u/1/d/e/1FAIpQLSfVhfp7ac2dg1LT0qMtvD8xhkTdgY4CnmOrsDF2il7rDSTr_g/viewform?usp=header) 
+**Url:** [Apply here](https://example.com/apply/grp-fall-2026)
+
+### P&O #2
+
+**Title:** ERC Data Fellows — Fall 2026 Cohort
+
+**Metaline:** Open to master’s and doctoral students — deadline August 22, 2026
+
+**Summary:** A fictional cohort program pairing students with ERC-affiliated researchers for hands-on training in cleaning, linking, and analyzing large administrative datasets. Fellows receive a modest stipend and present findings at a spring showcase. (Sample text — links go nowhere.)
+
+**Url:** [Apply here](https://example.com/apply/data-fellows-fall-2026)
 
 ## ERC Events
 
-### Event \#1
+### Event #1
 
-**Title:** ERC EdTalk: Dr. Steven Woltering
+**Title:** ERC EdTalk: Dr. Rowan Vale on Classroom AI
 
-**Date:** May 6, 2026
+**Date:** July 15, 2026
 
-**Time:** 11:30AM
+**Time:** 11:30 AM
 
-**Location:** Rudder Tower 707
+**Location:** Harrington Hall 707
 
-**Url:** [https://erc.cehd.tamu.edu/site-events/erc-edtalk-dr-steven-woltering/](https://erc.cehd.tamu.edu/site-events/erc-edtalk-dr-steven-woltering/) 
+**Url:** [Event details](https://example.com/events/edtalk-vale)
 
-### Event \#2
+### Event #2
 
 **Title:** In the Works: Faculty Research Talks
 
-**Date:** May 20, 2026
+**Date:** July 29, 2026
 
-**Time:** 2:00pm
+**Time:** 2:00 PM
 
-**Location:** Rudder Tower 720
+**Location:** Harrington Hall 720
 
-**Url:** [https://erc.cehd.tamu.edu/site-events/erc-edtalk-dr-steven-woltering/](https://erc.cehd.tamu.edu/site-events/erc-edtalk-dr-steven-woltering/) 
+**Url:** [Event details](https://example.com/events/in-the-works)
+
+### Event #3
+
+**Title:** ERC Methods Workshop: Difference-in-Differences, Demystified
+
+**Date:** August 6, 2026
+
+**Time:** 10:00 AM
+
+**Location:** Harrington Hall 512
+
+**Url:** [Event details](https://example.com/events/methods-workshop-did)
 
 ## ERC Happy Hours
 
 **Title:** ERC Happy Hour
 
-**Date:** April 23, 2026
+**Date:** July 23, 2026
 
 **Time:** 4:30–6:30 PM CT
 
-**Location:** Ice's Red House
+**Location:** The Blue Heron Patio
 
 # Upcoming Events
 
-## Texas A\&M
+## Texas A&M
 
-### Event \#1
+### Event #1
 
 **title:** Civil Discourse Symposium
 
-**date:** April 20, 2026
+**date:** July 20, 2026
 
-**Time:** 2:13pm
+**Time:** 2:00 PM
 
-**location:** MSC 4231
+**location:** Sample Student Center 4231
 
-**url:** [https://calendar.tamu.edu/event/380249-civil-discourse-symposium](https://calendar.tamu.edu/event/380249-civil-discourse-symposium) 
+**url:** [Details](https://example.com/events/civil-discourse)
 
-### Event \#2
+### Event #2
 
-**title:** Economics Speaker Series — Ismael Mourifie
+**title:** Economics Speaker Series — Dr. Imani Cole
 
-**date:** April 30, 2026
+**date:** July 30, 2026
 
-**Time:** 3:00pm
+**Time:** 3:00 PM
 
-**location:** WCSS 2190
+**location:** Sample Hall 2190
 
-**url:** [https://calendar.tamu.edu/event/380249-civil-discourse-symposium](https://calendar.tamu.edu/event/380249-civil-discourse-symposium) 
+**url:** [Details](https://example.com/events/econ-speaker-cole)
+
+### Event #3
+
+**title:** Summer Data Science Bootcamp Showcase
+
+**date:** August 12, 2026
+
+**Time:** 1:00 PM
+
+**location:** Sample Engineering Building 118
+
+**url:** [Details](https://example.com/events/data-science-showcase)
 
 ## Off-Campus & Online
 
-### Event \#1
+### Event #1
 
-**title:** Education, Research, and Artificial Intelligence: Reflections from the AEFP Community
+**title:** Education Research and AI: A Community Conversation
 
-**date:** May 20, 2026
+**date:** July 21, 2026
 
 **time:** 2:00–3:00 PM ET
 
-**location:** Webinar (AEFP)
+**location:** Webinar (fictional)
 
-**url:** [https://aefpweb.org/ev\_calendar\_day.asp?date=5%2F20%2F26\&eventid=130](https://aefpweb.org/ev_calendar_day.asp?date=5%2F20%2F26&eventid=130)
+**url:** [Register](https://example.com/webinars/ai-community)
 
-### Event \#2
+### Event #2
 
-**title:** Homeroom with Education Leaders | Unlocking Workforce Pell Access
+**title:** Homeroom with Education Leaders | Workforce Pathways
 
 **date:** July 23, 2026
 
 **time:** 1:00 PM CT
 
-**location:** Webinar (AEFP)
+**location:** Webinar (fictional)
 
-**url:** [https://us06web.zoom.us/webinar/register/8417698349545/WN\_cTTlvhEqQX-GZ6LIVD2Wyw\#/registration](https://us06web.zoom.us/webinar/register/8417698349545/WN_cTTlvhEqQX-GZ6LIVD2Wyw#/registration) 
+**url:** [Register](https://example.com/webinars/homeroom-pathways)
 
-### Event \#3
+### Event #3
 
-**title:** Improving Student Attendance in the ICE Era
+**title:** Improving Student Attendance: What the Evidence Says
 
-**date:** June 17, 2026
+**date:** July 17, 2026
 
 **time:** 12:00 PM CT
 
-**location:** Webinar (EdWorking Papers)
+**location:** Webinar (fictional)
 
-**url:** [https://brown.zoom.us/meeting/register/16VdG6sgT9GYebaLOd7jZg](https://brown.zoom.us/meeting/register/16VdG6sgT9GYebaLOd7jZg) 
+**url:** [Register](https://example.com/webinars/attendance-evidence)
+
+### Event #4
+
+**title:** Rethinking Summer Learning Loss: A Panel Discussion
+
+**date:** August 4, 2026
+
+**time:** 11:00 AM CT
+
+**location:** Webinar (fictional)
+
+**url:** [Register](https://example.com/webinars/summer-learning-loss)
 
 # Opportunities
 
 ## Funding & Grants
 
-### F\&G \#1
+### F&G #1
 
-**title:** CEHD Strategic Research Awards
+**title:** Sample College Strategic Research Awards
 
-**metaline:** Deadline: May 1, 2026
+**metaline:** Deadline: August 1, 2026
 
-**url:** [https://tamu-ehd.infoready4.com/](https://tamu-ehd.infoready4.com/) 
+**url:** [Apply](https://example.com/funding/strategic-awards)
 
-### F\&G \#1
+### F&G #2
 
-**title:** CEHD Michael de Miranda EMERGE: Frontiers in Research Grant
+**title:** Frontiers in Education Research Grant
 
-**metaline:** LOI: May 1, 2026 | Full proposals: June 12, 2026
+**metaline:** LOI: August 1, 2026 | Full proposals: September 12, 2026
 
-**url:** [https://tamu-ehd.infoready4.com/](https://tamu-ehd.infoready4.com/) 
+**url:** [Apply](https://example.com/funding/frontiers-grant)
 
-## Fellowships & Training
+### F&G #3
 
-### F\&T \#1
+**title:** Rural Schools Innovation Fund
 
-**title:** Just Education Policy Institute 2026
+**metaline:** Deadline: September 5, 2026
 
-**metaline:** Deadline: June 1, 2026 | Doctoral students & postdocs
-
-**url:** [https://www.justeducationpolicy.org/apply](https://www.justeducationpolicy.org/apply) 
+**url:** [Apply](https://example.com/funding/rural-innovation-fund)
 
 ## Fellowships & Training
 
-### F\&T \#1
+### F&T #1
 
-**title:** Just Education Policy Institute 2026
+**title:** Summer Education Policy Institute 2026
 
-**metaline:** Deadline: June 1, 2026 | Doctoral students & postdocs
+**metaline:** Deadline: August 1, 2026 | Doctoral students & postdocs
 
-**url:** [https://www.justeducationpolicy.org/apply](https://www.justeducationpolicy.org/apply) 
+**url:** [Apply](https://example.com/fellowships/policy-institute)
+
+### F&T #2
+
+**title:** Emerging Scholars Training Program in Education Data Science
+
+**metaline:** Deadline: August 28, 2026 | Postdocs & early-career faculty
+
+**url:** [Apply](https://example.com/fellowships/emerging-scholars-datasci)
 
 ## Calls for Proposals
 
-### Call \#1
+### Call #1
 
-**title:** Sustainability in Higher Education (MDPI Sustainability)
+**title:** Special Issue: Sustainability in Higher Education (fictional journal)
 
 **metaline:** Manuscript deadline: May 1, 2027
 
-**url:** [https://www.mdpi.com/journal/sustainability/special\_issues/VPCXQQ85MX](https://www.mdpi.com/journal/sustainability/special_issues/VPCXQQ85MX) 
+**url:** [Call details](https://example.com/calls/sustainability)
 
-### Call \#2
+### Call #2
 
-**title:** AERA 2027 Annual Meeting Call for Papers and Session Submissions
+**title:** 2027 Education Research Conference — Call for Papers
 
 **metaline:** Deadline: July 24, 2026
 
-**url:** [https://www.aera.net/Events-Meetings/Annual-Meeting/2027-Annual-Meeting-Call-for-Paper-and-Session-Submissions](https://www.aera.net/Events-Meetings/Annual-Meeting/2027-Annual-Meeting-Call-for-Paper-and-Session-Submissions) 
+**url:** [Call details](https://example.com/calls/conference-2027)
+
+### Call #3
+
+**title:** Special Issue: AI and Assessment in K-12 Schools (fictional journal)
+
+**metaline:** Abstract deadline: September 15, 2026
+
+**url:** [Call details](https://example.com/calls/ai-assessment-k12)
 
 # New Education Policy Research
 
 ## Working Papers
 
-### WP \#1
+### WP #1
 
-**title:** Property Tax Salience and Public Good Investment: Evidence from School Bond Elections
+**title:** Property Taxes and Playgrounds: School Bond Elections in Sample County
 
-**source:** EdWorkingPaper
+**source:** Fictional Working Paper Series
 
-**url:** [https://edworkingpapers.com/ai26-1500](https://edworkingpapers.com/ai26-1500) 
+**url:** [Read](https://example.com/wp/bonds-playgrounds)
 
-### WP \#2
+### WP #2
 
-**title:** Immigration Enforcement Actions and Empty Desks: Persistent and Acute Attendance Effects
+**title:** Empty Desks: Measuring Attendance Shocks After Policy Changes
 
-**source:** EdWorkingPaper
+**source:** Fictional Working Paper Series
 
-**url:** [https://edworkingpapers.com/ai26-1453](https://edworkingpapers.com/ai26-1453) 
+**url:** [Read](https://example.com/wp/empty-desks)
 
-### WP \#3
+### WP #3
 
-**title:** Trends in Local Teacher Supply Since the COVID-19 Pandemic: Evidence from Teacher Job Applications
+**title:** Who Applies? Trends in Teacher Job Applications Since 2020
 
-**source:** EdWorkingPaper
+**source:** Fictional Working Paper Series
 
-**url:** [https://edworkingpapers.com/ai26-1453](https://edworkingpapers.com/ai26-1453) 
+**url:** [Read](https://example.com/wp/who-applies)
+
+### WP #4
+
+**title:** Grading on a Curve: Do Districts Inflate Scores Before Elections?
+
+**source:** Fictional Working Paper Series
+
+**url:** [Read](https://example.com/wp/grading-on-a-curve)
 
 ## Peer Reviewed
 
-### PR \#1
+### PR #1
 
-**title:** The Effects of High-Impact Tutoring on Student Attendance: Evidence from a State Initiative
+**title:** High-Impact Tutoring and Student Attendance: Evidence from a Sample State
 
-**source:** AERA Open
+**source:** Journal of Made-Up Findings
 
-**url:** [https://edworkingpapers.com/ai26-1500](https://edworkingpapers.com/ai26-1500) 
+**url:** [Read](https://example.com/pr/tutoring-attendance)
+
+### PR #2
+
+**title:** Principal Turnover and School Climate: A Longitudinal Study
+
+**source:** Journal of Fictional Education Research
+
+**url:** [Read](https://example.com/pr/principal-turnover-climate)
 
 ## Miscellaneous
 
-### Misc \#1
+### Misc #1
 
-**title:** AI in PK-12 Education: Implications for Teaching and Learning
+**title:** AI in PK-12 Classrooms: A Practitioner’s Field Guide
 
-**source:** MERC Research & Policy Review
+**source:** Sample Research & Policy Review
 
-**url:** [https://scholarscompass.vcu.edu/merc\_pubs/158/](https://scholarscompass.vcu.edu/merc_pubs/158/)
+**url:** [Read](https://example.com/misc/ai-field-guide)
 
+### Misc #2
 
-### Misc \#2
+**title:** Identifying Effective Attendance Strategies: A District Toolkit
 
-**title:** Identifying Effective Attendance Strategies in Michigan
+**source:** Riverbend Partnership for Education Research
 
-**source:** Detroit Partnership for Education Equity & Research (PEER) 
+**url:** [Read](https://example.com/misc/attendance-toolkit)
 
-**url:** [https://detroitpeer.org/wp-content/uploads/2026/05/Identifying-Effective-Attendance-Strategies.pdf](https://detroitpeer.org/wp-content/uploads/2026/05/Identifying-Effective-Attendance-Strategies.pdf) 
+### Misc #3
+
+**title:** Building Better Onboarding for First-Year Teachers: A Field Notebook
+
+**source:** Sample Research & Policy Review
+
+**url:** [Read](https://example.com/misc/first-year-onboarding)
 
 # Education Headlines
 
 ## Federal
 
-### Fed \#1
+### Fed #1
 
-**title:** Teens' reading and math scores stay stalled in latest NAEP data 
+**title:** National test scores hold steady in latest results
 
-**source:** PBS NewsHour
+**source:** The Sample Gazette
 
-**url:**  [https://www.pbs.org/newshour/education/teens-reading-and-math-scores-have-stagnated-us-test-results-show](https://www.pbs.org/newshour/education/teens-reading-and-math-scores-have-stagnated-us-test-results-show) 
+**url:** [Read](https://example.com/news/test-scores-steady)
 
-### Fed \#2
+### Fed #2
 
-**title:** Federal student-aid overhaul takes effect July 1
+**title:** Federal student-aid changes take effect this month
 
-**source:** Hechinger Report
+**source:** The Fictional Times
 
-**url:**  [https://hechingerreport.org/workforce-pell-federal-scholarship-money-expansion/](https://hechingerreport.org/workforce-pell-federal-scholarship-money-expansion/) 
+**url:** [Read](https://example.com/news/student-aid-changes)
 
-### Fed \#3
+### Fed #3
 
-**title:** As AI use in schools grows, lawmakers and districts scramble for guardrails
+**title:** As classroom AI grows, districts scramble for guardrails
 
-**source:** The 74
+**source:** Education Daily (fictional)
 
-**url:**  [https://www.the74million.org/article/as-ai-use-in-schools-grows-lawmakers-and-districts-scramble-to-set-up-guardrails/](https://www.the74million.org/article/as-ai-use-in-schools-grows-lawmakers-and-districts-scramble-to-set-up-guardrails/) 
+**url:** [Read](https://example.com/news/ai-guardrails)
+
+### Fed #4
+
+**title:** Lawmakers debate renewal of after-school funding program
+
+**source:** The Fictional Times
+
+**url:** [Read](https://example.com/news/afterschool-funding-renewal)
 
 ## Texas
 
-### TX \#1
+### TX #1
 
-**title:** Texas launches its school voucher/ESA program — year one
+**title:** State launches new school-choice program — year one
 
-**source:** The Texas Tribune
+**source:** The Sample Tribune
 
-**url:** [https://www.texastribune.org/2026/05/04/texas-launches-school-vouchers-esa-choice/](https://www.texastribune.org/2026/05/04/texas-launches-school-vouchers-esa-choice/) 
+**url:** [Read](https://example.com/news/school-choice-year-one)
 
-### TX \#2
+### TX #2
 
-**title:** District budget crises and spreading state takeovers
+**title:** District budgets tighten as enrollment shifts
 
-**source:** The Texas Tribune
+**source:** The Sample Tribune
 
-**url:** [https://www.texastribune.org/2026/06/01/texas-school-funding-teacher-quality-special-education/](https://www.texastribune.org/2026/06/01/texas-school-funding-teacher-quality-special-education/) 
+**url:** [Read](https://example.com/news/district-budgets)
 
-### TX \#3
+### TX #3
 
-**title:** STAAR results and accountability
+**title:** Statewide test results and accountability, explained
 
-**source:** The Texas Tribune
+**source:** The Sample Tribune
 
-**url:** [https://www.texastribune.org/2026/05/04/texas-launches-school-vouchers-esa-choice/](https://www.texastribune.org/2026/05/04/texas-launches-school-vouchers-esa-choice/) 
+**url:** [Read](https://example.com/news/results-explained)
+
+### TX #4
+
+**title:** Rural districts pilot four-day school week amid staffing crunch
+
+**source:** The Sample Tribune
+
+**url:** [Read](https://example.com/news/four-day-week-pilot)
