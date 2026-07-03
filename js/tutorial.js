@@ -91,6 +91,20 @@ class DomView {
     this._reposition = null;
   }
 
+  _setBackgroundInert(on) {
+    ['.app-header', '.wizard-body'].forEach((sel) => {
+      const node = document.querySelector(sel);
+      if (!node) return;
+      if (on) {
+        node.setAttribute('inert', '');
+        node.setAttribute('aria-hidden', 'true');
+      } else {
+        node.removeAttribute('inert');
+        node.removeAttribute('aria-hidden');
+      }
+    });
+  }
+
   showTip(model) {
     this._ensure();
     this.scrim.style.display = 'block';
@@ -121,6 +135,7 @@ class DomView {
     this._onExit = model.onExit;
     this.tip.setAttribute('tabindex', '-1');
     this.tip.focus();
+    this._setBackgroundInert(true);
   }
 
   _centerCard(title, body) {
@@ -140,6 +155,7 @@ class DomView {
     this._onExit = null; // welcome/handoff require an explicit button choice
     this.tip.setAttribute('tabindex', '-1');
     this.tip.focus();
+    this._setBackgroundInert(true);
   }
 
   showWelcome(model) {
@@ -196,6 +212,7 @@ class DomView {
       this.tip.style.display = 'none';
       this.tip.classList.remove('tut-tip--center');
     }
+    this._setBackgroundInert(false);
   }
 
   mountReplay(onReplay) {
