@@ -77,7 +77,7 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 
 ## 4. Anonymized sample fixture
 
-- Rewrite `fixtures/sample-real.md` (the file `loadSampleIssue` fetches) as a fully fictional issue with the **same structure, section order, and item counts** as today's file, so the demo stays visibly "full".
+- Rewrite `fixtures/sample-real.md` (the file `loadSampleIssue` fetches) as a fully fictional issue with the same structure and section order as today's file, but **~1.5× the item counts** (~45 items vs ~30) so the demo newsletter looks generously full (Kate, 2026-07-02: "it needs to maybe include like 1.5x stuff for the demo").
 - All names, titles, orgs, events fictional but realistic (education-research flavored; e.g. fictional researchers, fictional districts); dates plausible relative to a generic summer issue; **every URL → `https://example.com/...` placeholders**; no real people, no real Drive links, no TAMU-specific personal content. The intro keeps its warm 2–3 sentence shape with fictional content.
 - Other fixtures (`full-issue.md`, `sparse-issue.md`, `combined-issues.md`) are test fixtures, not user-facing; out of scope unless tests fail.
 
