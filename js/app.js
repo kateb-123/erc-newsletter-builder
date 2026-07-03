@@ -29,6 +29,9 @@ const state = {
   step: 'upload',
 };
 
+/** Listeners notified whenever the wizard step changes (used by the tutorial). */
+const stepChangeListeners = new Set();
+
 // ---------------------------------------------------------------------------
 // Autosave helpers
 // ---------------------------------------------------------------------------
@@ -122,6 +125,11 @@ function goTo(step) {
   if (step === 'triage') renderTriage();
   if (step === 'edit') renderEdit();
   if (step === 'export') renderExport();
+
+  // Notify tutorial (and any other) step-change subscribers.
+  stepChangeListeners.forEach((cb) => {
+    try { cb(step); } catch (err) { console.error('[stepChange] listener threw:', err); }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1510,6 +1518,39 @@ function maybeShowRestoreBanner() {
   uploadSection.insertBefore(banner, uploadSection.firstChild);
 }
 
+// ---------------------------------------------------------------------------
+// Tutorial integration API
+// ---------------------------------------------------------------------------
+
+/**
+ * Small, explicit surface the tutorial uses to drive and observe the app.
+ * loadSampleIssue is deliberately non-persisting: the demo must never
+ * overwrite the user's real saved work.
+ */
+const tutorialApi = {
+  goToStep: goTo,
+  getCurrentStep: () => state.step,
+  onStepChange(cb) {
+    stepChangeListeners.add(cb);
+    return () => stepChangeListeners.delete(cb);
+  },
+  getIssueSnapshot() {
+    return state.issue ? structuredClone(state.issue) : null;
+  },
+  setIssue(issue) {
+    state.issue = issue || null;
+    state.baseline = issue ? structuredClone(issue) : null;
+  },
+  async loadSampleIssue() {
+    const res = await fetch('fixtures/sample-real.md');
+    const text = await res.text();
+    const { issue } = parseMarkdown(text);
+    state.issue = issue;
+    state.baseline = structuredClone(issue);
+    // NOTE: intentionally NO saveState() — demo must not clobber real work.
+  },
+};
+
 window.__state = state;
 window.__renderTriage = renderTriage;
 window.__renderEdit = renderEdit;
@@ -1521,5 +1562,6 @@ window.__slugify = slugify;
 window.__saveState = saveState;
 window.__loadState = loadState;
 window.__clearState = clearState;
+window.__tutorialApi = tutorialApi;
 goTo('upload');
 maybeShowRestoreBanner();
