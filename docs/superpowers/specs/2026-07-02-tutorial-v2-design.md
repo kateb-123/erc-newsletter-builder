@@ -37,10 +37,12 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 |---|------|--------|-------|------|------|
 | 1 | upload | `.template-help a` | Start here | First time? Download the .md template and fill it in with Claude. *[link in tip body → docs page:]* Here's how the .md works. | — |
 | 2 | upload | `#drop-zone` | Add your file | Drag your finished .md into this box, or click Choose File to browse for it. (For this tour we'll use a sample newsletter.) | — |
-| 3 | triage | `.triage-sections-list` | Reorder sections | Try it — drag a section, or use the arrows, to change the order. | `{event: 'section-reordered', ack: 'Nice — that's all there is to it.'}` |
-| 4 | triage | `.triage-sections-list` | Turn sections on or off | Try it — uncheck a section and watch it leave the newsletter; check it to bring it back. | `{event: 'section-toggled', ack: 'See? Nothing is ever lost — just switched off.'}` |
+| 3 | triage | `.triage-grouped-section` | Reorder items | Try it — use the arrows to change the order items appear in. | `{event: 'triage-item-moved', ack: 'Nice — that's all there is to it.'}` |
+| 4 | triage | `.triage-featured-label` | Feature an event | Try it — check Featured on an event to pin it to the top of the Events section. | `{event: 'event-featured', ack: 'Pinned! One featured event per issue.'}` |
 | 5 | edit | `.edit-preview-iframe` | Edit in place | Try it — click any text in the preview and fix it right there. Nothing here is permanent. | `{event: 'editor-opened', ack: 'That's the editor — change anything, it updates live.'}` |
-| 6 | edit | *(narrowest selector for the reorder side panel — verify in live DOM; `.edit-layout` only as fallback)* | Reorder while editing | Try it — move an item up or down from this panel, no scrolling needed. | `{event: 'item-reordered', ack: 'Rearranged — the preview follows along.'}` |
+| 6 | edit | `.reorder-panel` | Reorder while editing | Try it — drag an item up or down from this panel, no scrolling needed. | `{event: 'panel-item-moved', ack: 'Rearranged — the preview follows along.'}` |
+
+**Reality correction (Kate approved, planning conversation):** the app has no section on/off toggles (populated sections always show; empty ones auto-hide) and triage reordering is per-item via arrows, not per-section and not drag. Old tip 4 ("sections on/off") is replaced with the **Featured event toggle**; tip 3's copy corrected to items + arrows. The view auto-opens a `<details>` ancestor of the target (the edit reorder panel is collapsible).
 | 7 | export | `.export-action-btn.btn-primary` | Copy it | Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That's a whole issue, done. | — |
 
 - Tip 7's button reads **Finish →** and ends the tour (restore stashed issue, mark seen, return to the step the user was on). No handoff card. No centered finale tip.
@@ -61,7 +63,7 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 - Reduced-motion: ack swap is a plain text swap (reuse the existing tip fade; no new motion).
 
 **App events (`js/app.js` via `tutorialApi`):**
-- The app emits, at its existing single mutation points: `section-reordered` (triage drag or arrows), `section-toggled` (triage checkbox), `editor-opened` (preview click opens the side editor), `item-reordered` (edit-step panel move). Emission is a no-op unless the tutorial subscribed (same pattern as `onStepChange`).
+- The app emits, at its existing single mutation points: `triage-item-moved` (triage up/down arrows), `event-featured` (events Featured checkbox), `editor-opened` (preview click calls `openItemEditor`), `panel-item-moved` (edit reorder-panel drop). Emission is a no-op unless the tutorial subscribed (same pattern as `onStepChange`).
 - Interface: `tutorialApi.onEvent(name, handler)` → unsubscribe fn, mirroring `onStepChange`.
 
 **Failure behavior:** if an event never fires (user skips trying), the tip behaves exactly like a passive tip. If a target selector misses, the v1 fallback chain applies (section → centered) and the tip silently downgrades to passive (no cutout without a target).
@@ -93,3 +95,4 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 - Tip 1 links to a **new in-app docs page** (Kate chose over template-file link or GitHub README).
 - Export: single tip with Kate's wording; tour ends there.
 - History scrub for the old fixture: **not doing** (already-public links; forward fix only).
+- Tip 4 replacement after reality check: **Featured event toggle** (Kate chose over the research-callout switch and dropping the tip).
