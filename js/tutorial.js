@@ -149,6 +149,7 @@ class DomView {
     } else {
       // No target (e.g. the final "paste into Outlook" tip): centered card.
       this.ring.style.display = 'none';
+      this._ringPrimed = false;
       this._unbindReposition();
       this.tip.style.top = '';
       this.tip.style.left = '';

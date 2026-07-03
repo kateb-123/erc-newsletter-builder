@@ -17,29 +17,29 @@ export const TOUR_TIPS = [
   { step: 'upload', target: '.template-help a', title: 'Start here',
     body: 'First time? Your .md template lives right here — download it and fill it in with Claude.' },
   { step: 'upload', target: '#drop-zone', title: 'Drop your file',
-    body: 'Then drag your finished .md file into this box...' },
-  { step: 'upload', target: '.drop-btn', title: '...or browse for it',
-    body: '...or click here to choose it. (For this tour we\'ll use a sample newsletter.)' },
+    body: 'Then drag your finished .md file into this box…' },
+  { step: 'upload', target: '.drop-btn', title: '…or browse for it',
+    body: '…or click here to choose it. (For this tour we’ll use a sample newsletter.)' },
   { step: 'triage', target: '.triage-field-input', title: 'Set the issue date',
     body: 'This date shows up in the newsletter header.' },
   { step: 'triage', target: '.triage-reorder-group', title: 'Reorder sections',
     body: 'Drag, or use these arrows, to change the order sections appear in.' },
   { step: 'triage', target: '.triage-sections-list', title: 'Turn sections on or off',
-    body: 'Every section is listed here. Uncheck anything you\'re skipping this issue — turn it back on anytime.' },
+    body: 'Every section is listed here. Uncheck anything you’re skipping this issue — turn it back on anytime.' },
   { step: 'edit', target: '.edit-preview-iframe', title: 'Edit in place',
     body: 'This is your real newsletter. Click any text inside to edit it right there — nothing here is permanent.' },
   { step: 'edit', target: '.edit-layout', title: 'Reorder while editing',
-    body: 'Prefer a bird\'s-eye view? Reorder items from this panel without scrolling the preview.' },
+    body: 'Prefer a bird’s-eye view? Reorder items from this panel without scrolling the preview.' },
   { step: 'export', target: '.export-action-btn.btn-primary', title: 'Copy it',
     body: 'One click copies the whole newsletter to your clipboard.' },
   { step: 'export', target: null, title: 'Paste into Outlook',
-    body: 'Last step — in Outlook, choose Insert → HTML and paste. That\'s your issue, sent! 🎉' },
+    body: 'Last step — in Outlook, choose Insert → HTML and paste. That’s your issue, sent! 🎉' },
 ];
 
-/** Short coach-mark text shown on the user's OWN work, keyed by step. */
+/** Short coach-mark text shown on the user’s OWN work, keyed by step. */
 export const COACH_STEPS = {
   upload: 'Drop your real .md file here — grab the template from the link if you need it.',
-  triage: 'Set the date, reorder sections, and switch off any you\'re skipping. Then Next →.',
+  triage: 'Set the date, reorder sections, and switch off any you’re skipping. Then Next →.',
   edit: 'Click any text in the preview to fix it — nothing here is permanent.',
   export: 'Copy the HTML, then paste it into Outlook with Insert → HTML.',
 };
