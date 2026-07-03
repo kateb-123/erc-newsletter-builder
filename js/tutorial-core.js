@@ -18,23 +18,23 @@ export const SEEN_KEY = 'erc_tutorial_seen';
 export const TOUR_TIPS = [
   { step: 'upload', target: '.template-help a', title: 'Start here',
     body: 'First time? Download the .md template and fill it in with Claude.',
-    link: { href: 'docs.html', label: 'Here\'s how the .md works →' } },
+    link: { href: 'docs.html', label: 'Here’s how the .md works →' } },
   { step: 'upload', target: '#drop-zone', title: 'Add your file',
-    body: 'Drag your finished .md into this box, or click Choose File to browse. (For this tour we\'ll use a sample newsletter.)' },
+    body: 'Drag your finished .md into this box, or click Choose File to browse. (For this tour we’ll use a sample newsletter.)' },
   { step: 'triage', target: '.triage-grouped-section', title: 'Reorder items',
     body: 'Try it — use the arrows to change the order items appear in.',
-    interactive: { event: 'triage-item-moved', ack: 'Nice — that\'s all there is to it.' } },
+    interactive: { event: 'triage-item-moved', ack: 'Nice — that’s all there is to it.' } },
   { step: 'triage', target: '.triage-featured-label', title: 'Feature an event',
     body: 'Try it — check Featured on an event to pin it to the top of the Events section.',
     interactive: { event: 'event-featured', ack: 'Pinned! One featured event per issue.' } },
   { step: 'edit', target: '.edit-preview-iframe', title: 'Edit in place',
     body: 'Try it — click any text in the preview and fix it right there. Nothing here is permanent.',
-    interactive: { event: 'editor-opened', ack: 'That\'s the editor — change anything, it updates live.' } },
+    interactive: { event: 'editor-opened', ack: 'That’s the editor — change anything, it updates live.' } },
   { step: 'edit', target: '.reorder-panel', title: 'Reorder while editing',
     body: 'Try it — drag an item up or down from this panel, no scrolling needed.',
     interactive: { event: 'panel-item-moved', ack: 'Rearranged — the preview follows along.' } },
   { step: 'export', target: '.export-action-btn.btn-primary', title: 'Copy it',
-    body: 'Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That\'s a whole issue, done.' },
+    body: 'Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That’s a whole issue, done.' },
 ];
 
 /**
