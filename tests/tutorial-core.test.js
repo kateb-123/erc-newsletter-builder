@@ -194,3 +194,31 @@ test('restarting the demo after an exit re-navigates from upload', async () => {
   assert.equal(app.calls.goTo.length, navsBefore + 1);
   assert.equal(app.calls.goTo.at(-1), 'upload', 'restart must re-navigate to upload');
 });
+
+test('startDemo is a no-op while a tour is already running', async () => {
+  const REAL = { id: 'real' };
+  const app = fakeApp(REAL);
+  const view = fakeView();
+  const tc = new TourController({ app, view, storage: fakeStorage() });
+
+  await tc.startDemo();
+  view.seen.tip.onNext(); // mid-tour
+  await tc.startDemo();   // replay triggered mid-tour (e.g. keyboard focus on the header button)
+
+  assert.equal(app.calls.loadSample, 1, 'second start must be ignored');
+  await runToFinish(tc, view);
+  assert.equal(app.calls.setIssue.at(-1), REAL, 'stash must still hold the real issue');
+});
+
+test('a failed sample load aborts the demo and re-enables autosave', async () => {
+  const app = fakeApp(null);
+  app.loadSampleIssue = async () => { throw new Error('fetch failed'); };
+  const view = fakeView();
+  const tc = new TourController({ app, view, storage: fakeStorage() });
+
+  await tc.startDemo(); // must not throw
+
+  assert.deepEqual(app.calls.demoActive, [true, false], 'demo mode must be rolled back');
+  assert.equal(view.seen.tip, undefined, 'no tip may be shown');
+  assert.equal(tc.index, -1);
+});

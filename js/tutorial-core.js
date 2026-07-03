@@ -82,10 +82,19 @@ export class TourController {
   }
 
   async startDemo() {
-    if (this.app.setDemoActive) this.app.setDemoActive(true);
+    if (this.index >= 0) return; // already running — a mid-tour replay must not re-stash sample data
     this.stashed = this.app.getIssueSnapshot();     // real issue or null
     this.returnStep = this.app.getCurrentStep();
-    await this.app.loadSampleIssue();               // in-memory only
+    if (this.app.setDemoActive) this.app.setDemoActive(true);
+    try {
+      await this.app.loadSampleIssue();             // in-memory only
+    } catch (_) {
+      // Sample fetch failed (offline / stale deploy cache): abort cleanly.
+      // Nothing was mutated, and autosave must come back on.
+      if (this.app.setDemoActive) this.app.setDemoActive(false);
+      this.stashed = null;
+      return;
+    }
     this._shownStep = null;
     this._acked = false;
     this.index = 0;
