@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  TOUR_STEPS,
+  TOUR_TIPS,
   COACH_STEPS,
   SEEN_KEY,
   shouldAutoLaunch,
@@ -19,19 +19,23 @@ function fakeStorage(initial = {}) {
   };
 }
 
-test('TOUR_STEPS covers the four wizard steps in order', () => {
-  assert.deepEqual(
-    TOUR_STEPS.map((s) => s.step),
-    ['upload', 'triage', 'edit', 'export'],
-  );
-  for (const s of TOUR_STEPS) {
-    assert.ok(s.title && s.body, `step ${s.step} needs title + body`);
+test('TOUR_TIPS is an ordered, well-formed list grouped by wizard step', () => {
+  assert.ok(Array.isArray(TOUR_TIPS) && TOUR_TIPS.length >= 4);
+  const known = new Set(['upload', 'triage', 'edit', 'export']);
+  for (const t of TOUR_TIPS) {
+    assert.ok(known.has(t.step), `unexpected step: ${t.step}`);
+    assert.ok(t.title && t.body, `tip for ${t.step} needs title + body`);
+    assert.ok('target' in t, `tip for ${t.step} needs a target key (may be null)`);
   }
+  // Steps appear in wizard order by first appearance (sub-tips stay grouped).
+  const firstSeen = [];
+  for (const t of TOUR_TIPS) if (!firstSeen.includes(t.step)) firstSeen.push(t.step);
+  assert.deepEqual(firstSeen, ['upload', 'triage', 'edit', 'export']);
 });
 
-test('COACH_STEPS has a tip for every tour step', () => {
-  for (const s of TOUR_STEPS) {
-    assert.ok(COACH_STEPS[s.step], `missing coach tip for ${s.step}`);
+test('COACH_STEPS has an entry for every step used by TOUR_TIPS', () => {
+  for (const t of TOUR_TIPS) {
+    assert.ok(COACH_STEPS[t.step], `missing coach tip for ${t.step}`);
   }
 });
 
@@ -79,12 +83,21 @@ function fakeView() {
   };
 }
 
+/** Drive onNext until the handoff appears (or a guard trips). */
+async function runToHandoff(tc, view) {
+  let guard = 0;
+  while (view.seen.tip && !view.seen.handoff && guard++ < 100) {
+    view.seen.tip.onNext();
+    await Promise.resolve();
+  }
+  assert.ok(view.seen.handoff, 'handoff should appear after the last tip');
+}
+
 test('startDemo stashes real issue, loads sample, shows first tip', async () => {
   const REAL = { id: 'real' };
   const app = fakeApp(REAL);
   const view = fakeView();
-  const storage = fakeStorage();
-  const tc = new TourController({ app, view, storage });
+  const tc = new TourController({ app, view, storage: fakeStorage() });
 
   await tc.startDemo();
 
@@ -92,23 +105,19 @@ test('startDemo stashes real issue, loads sample, shows first tip', async () => 
   assert.equal(app.calls.goTo[0], 'upload');
   assert.equal(view.seen.tip.step, 'upload');
   assert.equal(view.seen.tip.index, 0);
-  assert.equal(view.seen.tip.total, 4);
+  assert.equal(view.seen.tip.total, TOUR_TIPS.length);
 });
 
-test('next advances through all four tips then shows handoff', async () => {
+test('demo navigates to each wizard step once, in order, across sub-tips', async () => {
   const app = fakeApp(null);
   const view = fakeView();
   const tc = new TourController({ app, view, storage: fakeStorage() });
 
-  await tc.startDemo();               // upload
-  view.seen.tip.onNext();             // triage
-  assert.equal(view.seen.tip.step, 'triage');
-  view.seen.tip.onNext();             // edit
-  view.seen.tip.onNext();             // export
-  assert.equal(view.seen.tip.step, 'export');
-  assert.equal(view.seen.tip.isLast, true);
-  view.seen.tip.onNext();             // -> handoff
-  assert.ok(view.seen.handoff, 'handoff shown after last tip');
+  await tc.startDemo();
+  await runToHandoff(tc, view);
+
+  // goToStep fired once per distinct step, in wizard order — NOT once per tip.
+  assert.deepEqual(app.calls.goTo, ['upload', 'triage', 'edit', 'export']);
 });
 
 test('declining handoff restores the real issue and marks seen', async () => {
@@ -119,13 +128,9 @@ test('declining handoff restores the real issue and marks seen', async () => {
   const tc = new TourController({ app, view, storage });
 
   await tc.startDemo();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();            // handoff
+  await runToHandoff(tc, view);
   view.seen.handoff.onDecline();
 
-  // real issue restored exactly (same reference the snapshot returned)
   assert.equal(app.calls.setIssue.at(-1), REAL);
   assert.equal(storage.getItem(SEEN_KEY), 'true');
   assert.equal(view.seen.hidden, true);
@@ -137,20 +142,12 @@ test('accepting handoff starts coach and shows the current step tip', async () =
   const tc = new TourController({ app, view, storage: fakeStorage() });
 
   await tc.startDemo();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();
-  view.seen.tip.onNext();            // handoff
+  await runToHandoff(tc, view);
   view.seen.handoff.onGuide();
 
-  // ends demo (back to upload), then coaches upload
   assert.equal(view.seen.coach.step, 'upload');
-
-  // advancing the real app to triage updates the coach tip
   app._emit('triage');
   assert.equal(view.seen.coach.step, 'triage');
-
-  // stop guiding tears it down
   view.seen.coach.onStop();
   assert.equal(view.seen.coachHidden, true);
 });

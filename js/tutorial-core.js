@@ -8,36 +8,40 @@
 
 export const SEEN_KEY = 'erc_tutorial_seen';
 
-/** Ordered demo tips — one per wizard step. */
-export const TOUR_STEPS = [
-  {
-    step: 'upload',
-    title: 'Upload your file',
-    body: 'This is where you drop your newsletter file — the .md file you filled in with Claude.',
-  },
-  {
-    step: 'triage',
-    title: 'Organize the outline',
-    body: 'Drag sections to reorder them, or switch off any you don’t need this issue.',
-  },
-  {
-    step: 'edit',
-    title: 'Preview & edit',
-    body: 'This is your newsletter. Click any text to edit it right in place.',
-  },
-  {
-    step: 'export',
-    title: 'Send it out',
-    body: 'Copy the finished newsletter and paste it into Outlook. That’s it — you’re done!',
-  },
+/**
+ * Ordered demo tips. Each spotlights one control (`target` = CSS selector) at
+ * the given wizard `step`. Sub-tips within a step share the same `step`.
+ * `target` may be null for a centered card (e.g. the final "paste into Outlook").
+ */
+export const TOUR_TIPS = [
+  { step: 'upload', target: '.template-help a', title: 'Start here',
+    body: 'First time? Your .md template lives right here — download it and fill it in with Claude.' },
+  { step: 'upload', target: '#drop-zone', title: 'Drop your file',
+    body: 'Then drag your finished .md file into this box...' },
+  { step: 'upload', target: '.drop-btn', title: '...or browse for it',
+    body: '...or click here to choose it. (For this tour we\'ll use a sample newsletter.)' },
+  { step: 'triage', target: '.triage-field-input', title: 'Set the issue date',
+    body: 'This date shows up in the newsletter header.' },
+  { step: 'triage', target: '.triage-reorder-group', title: 'Reorder sections',
+    body: 'Drag, or use these arrows, to change the order sections appear in.' },
+  { step: 'triage', target: '.triage-sections-list', title: 'Turn sections on or off',
+    body: 'Every section is listed here. Uncheck anything you\'re skipping this issue — turn it back on anytime.' },
+  { step: 'edit', target: '.edit-preview-iframe', title: 'Edit in place',
+    body: 'This is your real newsletter. Click any text inside to edit it right there — nothing here is permanent.' },
+  { step: 'edit', target: '.edit-layout', title: 'Reorder while editing',
+    body: 'Prefer a bird\'s-eye view? Reorder items from this panel without scrolling the preview.' },
+  { step: 'export', target: '.export-action-btn.btn-primary', title: 'Copy it',
+    body: 'One click copies the whole newsletter to your clipboard.' },
+  { step: 'export', target: null, title: 'Paste into Outlook',
+    body: 'Last step — in Outlook, choose Insert → HTML and paste. That\'s your issue, sent! 🎉' },
 ];
 
 /** Short coach-mark text shown on the user's OWN work, keyed by step. */
 export const COACH_STEPS = {
-  upload: 'Drop your real .md file here to begin.',
-  triage: 'Reorder or toggle your sections, then click Next →.',
-  edit: 'Click any text to fix it — nothing here is permanent.',
-  export: 'Copy or download, then paste into Outlook.',
+  upload: 'Drop your real .md file here — grab the template from the link if you need it.',
+  triage: 'Set the date, reorder sections, and switch off any you\'re skipping. Then Next →.',
+  edit: 'Click any text in the preview to fix it — nothing here is permanent.',
+  export: 'Copy the HTML, then paste it into Outlook with Insert → HTML.',
 };
 
 /**
@@ -81,6 +85,7 @@ export class TourController {
     this.returnStep = 'upload';
     this._coachActive = false;
     this._unsubscribe = null;
+    this._shownStep = null;
   }
 
   // --- Demo phase (sample data) ------------------------------------------
@@ -89,27 +94,34 @@ export class TourController {
     this.stashed = this.app.getIssueSnapshot();     // real issue or null
     this.returnStep = this.app.getCurrentStep();
     await this.app.loadSampleIssue();               // in-memory only
+    this._shownStep = null;
     this.index = 0;
     this._showCurrent();
   }
 
   _showCurrent() {
-    const item = TOUR_STEPS[this.index];
-    this.app.goToStep(item.step);
+    const item = TOUR_TIPS[this.index];
+    // Navigate the wizard only when the step actually changes, so sub-tips
+    // within a step don't rebuild the step DOM (which would drop the target).
+    if (item.step !== this._shownStep) {
+      this.app.goToStep(item.step);
+      this._shownStep = item.step;
+    }
     this.view.showTip({
       step: item.step,
+      target: item.target,
       title: item.title,
       body: item.body,
       index: this.index,
-      total: TOUR_STEPS.length,
-      isLast: this.index === TOUR_STEPS.length - 1,
+      total: TOUR_TIPS.length,
+      isLast: this.index === TOUR_TIPS.length - 1,
       onNext: () => this.next(),
       onExit: () => this.endDemo(),
     });
   }
 
   next() {
-    if (this.index >= TOUR_STEPS.length - 1) {
+    if (this.index >= TOUR_TIPS.length - 1) {
       this.finishDemo();
       return;
     }
@@ -129,6 +141,7 @@ export class TourController {
     this.app.setIssue(this.stashed);      // restore real work (or null)
     this.app.goToStep(this.returnStep);
     this.index = -1;
+    this._shownStep = null;
     markSeen(this.storage);
   }
 
