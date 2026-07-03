@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How the .md works — ERC Newsletter Builder</title>
+  <link rel="stylesheet" href="css/styles.css?v=23" />
+  <style>
+    .docs-page { max-width: 760px; margin: 0 auto; padding: 32px 24px 64px; }
+    .docs-page h1 { margin-bottom: 4px; }
+    .docs-page h2 { margin-top: 36px; }
+    .docs-back { display: inline-block; margin-bottom: 24px; }
+    .docs-example {
+      background: #f6f6fb;
+      border: 1px solid var(--bp-card-border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      white-space: pre;
+    }
+    .docs-steps li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <main class="docs-page">
+    <a class="docs-back" href="index.html">← Back to the builder</a>
+    <h1>How the .md works</h1>
+    <p>The builder turns one Markdown file into a finished, Outlook-ready newsletter.
+       You (or Claude) fill in the file; the builder does all the layout.</p>
+
+    <h2>1. Start from the template</h2>
+    <p><a href="CONTENT_TEMPLATE.md" download>Download the content template</a> and fill it in —
+       the fastest way is to hand it to Claude along with your notes, links, and event details,
+       and ask it to fill in the blanks. The template explains itself as you go.</p>
+
+    <h2>2. The format, in four rules</h2>
+    <p>Every line of the file is one of these:</p>
+    <div class="docs-example"># Featured Research        ← # is a SECTION (don’t rename these)
+## Research Brief          ← ## is a GROUP inside the section
+### Brief #1               ← ### starts one ITEM (the label text is ignored)
+**Title:** Can Tutoring Move the Needle?
+**Authors:** Jane Doe &amp; Sam Smith
+**Summary:** One or two sentences about the finding.
+**Url:** [Read the brief](https://example.com/brief)</div>
+    <p>Fields are matched by their label — <strong>Title, Authors, Summary, Date, Time,
+       Location, Source, Url, Metaline</strong> — so keep the labels and change the values.
+       Delete any field you don’t need, delete whole items you don’t have, and delete an
+       entire <code>#</code> section if it’s empty this issue.</p>
+    <p>Two parts are required every issue: the loose <code>date:</code> line under the top
+       title, and the <code># Intro:</code> block (2–3 welcoming sentences).</p>
+
+    <h2>3. From file to sent newsletter</h2>
+    <ol class="docs-steps">
+      <li><strong>Upload</strong> — drop your finished .md into the builder.</li>
+      <li><strong>Outline</strong> — set the order of items, and pick one Featured event.</li>
+      <li><strong>Preview &amp; Edit</strong> — click any text in the preview to fix it in place.</li>
+      <li><strong>Export</strong> — click <em>Copy HTML</em>. Then in Outlook Web App, start a
+          new message, choose <strong>Insert → HTML</strong>, and paste. Send yourself a test
+          first — it should look identical.</li>
+    </ol>
+
+    <p>Lost? Click <strong>“❓ Show me how”</strong> in the builder header any time for the
+       hands-on tour.</p>
+  </main>
+</body>
+</html>
