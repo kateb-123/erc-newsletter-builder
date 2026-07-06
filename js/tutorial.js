@@ -77,7 +77,7 @@ class DomView {
         'polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, '
         + `${l}px ${t}px, ${l}px ${b}px, ${rt}px ${b}px, ${rt}px ${t}px, ${l}px ${t}px)`;
     } else {
-      this.scrim.style.clipPath = '';
+      this._clearCutout();
     }
     // Tip is position:fixed — clamp it fully within the viewport.
     const margin = 16;
@@ -97,9 +97,35 @@ class DomView {
 
   _bindReposition() {
     this._unbindReposition();
-    this._reposition = () => { if (this._target) this._positionTo(this._target, false); };
+    // Coalesce scroll/resize storms (capture-phase scroll fires for every
+    // scrollable container) to at most one reposition per frame.
+    let queued = false;
+    this._reposition = () => {
+      if (queued || !this._target) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        if (this._target) this._positionTo(this._target, false);
+      });
+    };
     window.addEventListener('resize', this._reposition);
     window.addEventListener('scroll', this._reposition, true);
+  }
+
+  /** Scroll to, ring, and track a resolved spotlight target (or proxy). */
+  _activateTarget(target) {
+    this._target = target;
+    this.ring.style.display = 'block';
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    this._positionTo(target, this._ringPrimed);
+    this._ringPrimed = true;
+    this._bindReposition();
+  }
+
+  /** Remove the scrim cutout (single owner of the reset). */
+  _clearCutout() {
+    this._cutout = false;
+    if (this.scrim) this.scrim.style.clipPath = '';
   }
 
   _unbindReposition() {
@@ -169,11 +195,7 @@ class DomView {
         frame.addEventListener('load', () => {
           if (this._target !== frame) return; // the tour moved on
           const el2 = frame.contentDocument && frame.contentDocument.querySelector(model.inner);
-          if (!el2) return;
-          const proxy = makeProxy(el2);
-          this._target = proxy;
-          proxy.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-          this._positionTo(proxy, this._ringPrimed);
+          if (el2) this._activateTarget(makeProxy(el2));
         }, { once: true });
       }
     }
@@ -207,17 +229,13 @@ class DomView {
     this.tip.append(foot);
 
     if (targetEl) {
-      this.ring.style.display = 'block';
-      targetEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      this._positionTo(targetEl, this._ringPrimed);
-      this._ringPrimed = true;
-      this._bindReposition();
+      this._activateTarget(targetEl);
     } else {
       // No usable target: centered card.
       this.ring.style.display = 'none';
       this._ringPrimed = false;
       this._unbindReposition();
-      this.scrim.style.clipPath = '';
+      this._clearCutout();
       this.tip.style.top = '';
       this.tip.style.left = '';
       this.tip.classList.add('tut-tip--center');
@@ -276,8 +294,7 @@ class DomView {
     this._unbindReposition();
     this._target = null;
     this._ringPrimed = false;
-    this._cutout = false;
-    if (this.scrim) this.scrim.style.clipPath = '';
+    this._clearCutout();
     this._onExit = null;
     if (this.scrim) this.scrim.style.display = 'none';
     if (this.ring) this.ring.style.display = 'none';

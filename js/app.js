@@ -30,9 +30,6 @@ const state = {
   step: 'upload',
 };
 
-/** Listeners notified whenever the wizard step changes (used by the tutorial). */
-const stepChangeListeners = new Set();
-
 /** Tutorial event bus: named one-shot signals the tour can subscribe to. */
 const tutorialEventListeners = new Map();
 function emitTutorialEvent(name) {
@@ -137,11 +134,6 @@ function goTo(step) {
   if (step === 'triage') renderTriage();
   if (step === 'edit') renderEdit();
   if (step === 'export') renderExport();
-
-  // Notify tutorial (and any other) step-change subscribers.
-  stepChangeListeners.forEach((cb) => {
-    try { cb(step); } catch (err) { console.error('[stepChange] listener threw:', err); }
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1568,10 +1560,6 @@ function maybeShowRestoreBanner() {
 const tutorialApi = {
   goToStep: goTo,
   getCurrentStep: () => state.step,
-  onStepChange(cb) {
-    stepChangeListeners.add(cb);
-    return () => stepChangeListeners.delete(cb);
-  },
   onEvent(name, cb) {
     if (!tutorialEventListeners.has(name)) tutorialEventListeners.set(name, new Set());
     const set = tutorialEventListeners.get(name);

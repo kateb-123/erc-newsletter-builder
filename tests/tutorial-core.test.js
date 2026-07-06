@@ -61,17 +61,15 @@ test('shouldAutoLaunch fails open when storage throws', () => {
 function fakeApp(initialIssue = null) {
   const calls = { loadSample: 0, setIssue: [], goTo: [], demoActive: [] };
   let current = 'upload';
-  const stepListeners = new Set();
   const eventListeners = new Map();
   return {
     calls,
-    goToStep(step) { current = step; calls.goTo.push(step); stepListeners.forEach((c) => c(step)); },
+    goToStep(step) { current = step; calls.goTo.push(step); },
     getCurrentStep() { return current; },
     getIssueSnapshot() { return initialIssue; },
     setIssue(issue) { calls.setIssue.push(issue); },
     setDemoActive(on) { calls.demoActive.push(on); },
     async loadSampleIssue() { calls.loadSample += 1; },
-    onStepChange(cb) { stepListeners.add(cb); return () => stepListeners.delete(cb); },
     onEvent(name, cb) {
       if (!eventListeners.has(name)) eventListeners.set(name, new Set());
       eventListeners.get(name).add(cb);
