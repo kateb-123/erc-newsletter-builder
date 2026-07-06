@@ -136,13 +136,49 @@ class DomView {
       targetEl = document.querySelector(model.target)
         || (model.step ? document.querySelector(`[data-step="${model.step}"]`) : null);
     }
-    this._target = targetEl;
-    this._cutout = !!(model.interactive && targetEl);
 
     // A collapsed <details> ancestor (the edit reorder panel) must be open
-    // to be seen and tried.
+    // to be seen and tried. (Checked on the real element, before any proxy.)
     const details = targetEl && targetEl.closest('details');
     if (details) details.open = true;
+
+    // `inner` narrows the spotlight to an element INSIDE a same-origin iframe
+    // (e.g. the intro text in the preview). Positioning only ever needs a
+    // viewport rect and scrollIntoView, so a tiny proxy composes the two.
+    // The preview iframe is srcdoc-driven, and srcdoc loads async — when the
+    // inner element is not there yet, spotlight the frame now and upgrade to
+    // the inner element on the frame's load event.
+    if (targetEl && model.inner && targetEl.contentDocument) {
+      const frame = targetEl;
+      const makeProxy = (innerEl) => ({
+        getBoundingClientRect() {
+          const f = frame.getBoundingClientRect();
+          const r = innerEl.getBoundingClientRect();
+          return {
+            top: f.top + r.top, left: f.left + r.left,
+            width: r.width, height: r.height,
+            bottom: f.top + r.bottom, right: f.left + r.right,
+          };
+        },
+        scrollIntoView(opts) { innerEl.scrollIntoView(opts); },
+      });
+      const innerEl = frame.contentDocument.querySelector(model.inner);
+      if (innerEl) {
+        targetEl = makeProxy(innerEl);
+      } else {
+        frame.addEventListener('load', () => {
+          if (this._target !== frame) return; // the tour moved on
+          const el2 = frame.contentDocument && frame.contentDocument.querySelector(model.inner);
+          if (!el2) return;
+          const proxy = makeProxy(el2);
+          this._target = proxy;
+          proxy.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          this._positionTo(proxy, this._ringPrimed);
+        }, { once: true });
+      }
+    }
+    this._target = targetEl;
+    this._cutout = !!(model.interactive && targetEl);
 
     this.tip.style.display = 'block';
     this.tip.replaceChildren();

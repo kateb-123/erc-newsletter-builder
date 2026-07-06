@@ -13,7 +13,8 @@ export const SEEN_KEY = 'erc_tutorial_seen';
  * the given wizard `step`; sub-tips within a step share the same `step`.
  * `interactive` tips leave the page live so the user can perform the real
  * action — when the app emits `interactive.event`, the tip re-renders with
- * `interactive.ack`. `link` renders as an anchor under the body.
+ * `interactive.ack`. `link` renders as an anchor under the body. `inner`
+ * narrows the spotlight to an element INSIDE the target iframe (same-origin).
  */
 export const TOUR_TIPS = [
   { step: 'upload', target: '.template-help a', title: 'Start here',
@@ -22,16 +23,17 @@ export const TOUR_TIPS = [
   { step: 'upload', target: '#drop-zone', title: 'Add your file',
     body: 'Drag your finished .md into this box, or click Choose File to browse. (For this tour we’ll use a sample newsletter.)' },
   { step: 'triage', target: '.triage-grouped-section', title: 'Reorder items',
-    body: 'Try it — use the arrows to change the order items appear in.',
+    body: 'Use the arrows to change the order items appear in.',
     interactive: { event: 'triage-item-moved', ack: 'Nice — that’s all there is to it.' } },
   { step: 'triage', target: '.triage-featured-label', title: 'Feature an event',
-    body: 'Try it — check Featured on an event to pin it to the top of the Events section.',
+    body: 'Check Featured on an event to pin it to the top of the Events section.',
     interactive: { event: 'event-featured', ack: 'Pinned! One featured event per issue.' } },
-  { step: 'edit', target: '.edit-preview-iframe', title: 'Edit in place',
-    body: 'Try it — click any text in the preview and fix it right there. Nothing here is permanent.',
+  { step: 'edit', target: '.edit-preview-iframe', inner: '[data-edit-field="intro"]',
+    title: 'Edit in place',
+    body: 'Click any text in the preview — like this intro — and fix it right there. Nothing here is permanent.',
     interactive: { event: 'editor-opened', ack: 'That’s the editor — change anything, it updates live.' } },
   { step: 'edit', target: '.reorder-panel', title: 'Reorder while editing',
-    body: 'Try it — drag an item up or down from this panel, no scrolling needed.',
+    body: 'Drag an item up or down from this panel — no scrolling needed.',
     interactive: { event: 'panel-item-moved', ack: 'Rearranged — the preview follows along.' } },
   { step: 'export', target: '.export-action-btn.btn-primary', title: 'Copy it',
     body: 'Save, then click Copy HTML and paste into Outlook Web App (Insert → HTML). That’s a whole issue, done.' },
@@ -117,6 +119,7 @@ export class TourController {
     this.view.showTip({
       step: item.step,
       target: item.target,
+      inner: item.inner || null,
       title: item.title,
       body: item.body,
       link: item.link || null,

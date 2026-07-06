@@ -311,6 +311,24 @@ window.__handleFile = handleFile;
 // Triage step
 // ---------------------------------------------------------------------------
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** "July 01, 2026" → "2026-07-01" for a date input ('' when unparseable). */
+function displayDateToISO(str) {
+  const t = Date.parse(str);
+  if (Number.isNaN(t)) return '';
+  const d = new Date(t);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** "2026-07-01" → "July 01, 2026" (component-wise — no timezone drift). */
+function isoToDisplayDate(value) {
+  const [y, m, d] = value.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  return `${MONTH_NAMES[m - 1]} ${String(d).padStart(2, '0')}, ${y}`;
+}
+
 /**
  * Render the triage step UI from `state.issue`.
  * Called each time the wizard navigates to the 'triage' step.
@@ -335,12 +353,15 @@ function renderTriage() {
   dateLabel.className = 'triage-field-label';
   dateLabel.textContent = 'Issue date';
   const dateInput = document.createElement('input');
-  dateInput.type = 'text';
+  dateInput.type = 'date';
   dateInput.className = 'triage-field-input';
-  dateInput.value = issue ? (issue.date || '') : '';
-  dateInput.addEventListener('input', () => {
-    if (issue) issue.date = dateInput.value;
-    scheduleSave();
+  dateInput.value = issue ? displayDateToISO(issue.date || '') : '';
+  dateInput.addEventListener('change', () => {
+    // The issue keeps the display string the header renders ("July 01, 2026").
+    if (issue && dateInput.value) {
+      issue.date = isoToDisplayDate(dateInput.value);
+      scheduleSave();
+    }
   });
   dateLabel.appendChild(dateInput);
   metaSection.appendChild(dateLabel);

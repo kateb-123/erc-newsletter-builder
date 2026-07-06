@@ -96,3 +96,10 @@ Kate's review of the 10-tip tour: too many passive tips (two for upload, one for
 - Export: single tip with Kate's wording; tour ends there.
 - History scrub for the old fixture: **not doing** (already-public links; forward fix only).
 - Tip 4 replacement after reality check: **Featured event toggle** (Kate chose over the research-callout switch and dropping the tip).
+
+## Addendum (2026-07-03, Kate's review of the built v2)
+
+- **No "Try it" phrasing** anywhere in tutorial copy — the four hands-on tip bodies now state the action directly ("Use the arrows…", "Check Featured…", "Click any text…", "Drag an item…").
+- **Edit-in-place spotlight targets the intro text**, not the preview header: tips support `inner: <selector>` which narrows the spotlight to an element inside the same-origin preview iframe (tip 5 uses `[data-edit-field="intro"]`). The srcdoc iframe loads async, so the view spotlights the frame first and upgrades to the inner element on the frame's load event.
+- **Issue date is a calendar picker** (`<input type="date">`) on the Outline step; `issue.date` still stores the display string the header renders ("July 01, 2026"), converted component-wise both ways (no timezone drift).
+- Cache-busters now `styles.css?v=24` / `app.js?v=12`.
