@@ -16,3 +16,6 @@ npm-debug.log*
 # local dev tooling (not part of the app)
 .claude/
 dev-server.py
+
+# Visual brainstorming session files
+.superpowers/
