@@ -77,6 +77,8 @@ Principle Kate approved: **GitHub is the single meeting point between the scrape
 
 ## Explicitly out of scope for this build
 
+- **Visual polish** — Kate's call (July 8): don't sweat styling now; build the new steps functional in the app's existing look, circle back on style later.
+
 - **ERC-voice rewrite** stays a Claude job (post-keep, pre-Outline) — not client-side.
 - **Opportunities scraping** (grants/fellowships/CFPs) — separate future effort; until then Opportunities arrives via the .md side door.
 - **Website publishing** — we export a list; we don't touch the website itself.
