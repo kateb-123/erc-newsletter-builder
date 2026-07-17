@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SECTION_REGISTRY, createEmptyIssue, sectionByAlias, groupByAlias } from '../js/model.js';
+import { SECTION_REGISTRY, createEmptyIssue, sectionByAlias, groupByAlias, deleteItem, insertItem } from '../js/model.js';
 
 test('registry order includes spotlight between research and events; no standalone happyhour', () => {
   const keys = SECTION_REGISTRY.map(s => s.key);
@@ -51,4 +51,51 @@ test('new group aliases resolve', () => {
   assert.equal(groupByAlias('research', 'Report'), 'report');
   assert.equal(groupByAlias('events', 'Off-Campus & Online'), 'offcampus');
   assert.equal(groupByAlias('spotlight', 'ERC Happy Hours'), 'thisandthat');
+});
+
+test('deleteItem removes by id and returns spot for undo; empties disable section', () => {
+  const issue = createEmptyIssue();
+  issue.sections.headlines.items = [
+    { id: 'a', group: 'federal', fields: { title: 'A' } },
+    { id: 'b', group: 'texas', fields: { title: 'B' } },
+  ];
+  issue.sections.headlines.enabled = true;
+  const removed = deleteItem(issue, 'b');
+  assert.deepEqual({ sectionKey: removed.sectionKey, index: removed.index, title: removed.item.fields.title },
+    { sectionKey: 'headlines', index: 1, title: 'B' });
+  assert.equal(issue.sections.headlines.items.length, 1);
+  assert.equal(issue.sections.headlines.enabled, true);
+  deleteItem(issue, 'a');
+  assert.equal(issue.sections.headlines.items.length, 0);
+  assert.equal(issue.sections.headlines.enabled, false);
+});
+
+test('deleteItem returns null for an unknown id', () => {
+  const issue = createEmptyIssue();
+  assert.equal(deleteItem(issue, 'nope'), null);
+});
+
+test('insertItem restores a deleted item at its original index (undo)', () => {
+  const issue = createEmptyIssue();
+  issue.sections.policy.items = [
+    { id: 'x', group: 'working', fields: { title: 'X' } },
+    { id: 'y', group: 'working', fields: { title: 'Y' } },
+    { id: 'z', group: 'working', fields: { title: 'Z' } },
+  ];
+  issue.sections.policy.enabled = true;
+  const removed = deleteItem(issue, 'y');
+  assert.deepEqual(issue.sections.policy.items.map(i => i.id), ['x', 'z']);
+  insertItem(issue, removed.sectionKey, removed.index, removed.item);
+  assert.deepEqual(issue.sections.policy.items.map(i => i.id), ['x', 'y', 'z']);
+});
+
+test('insertItem re-enables an emptied section', () => {
+  const issue = createEmptyIssue();
+  issue.sections.events.items = [{ id: 'e1', group: 'offcampus', fields: { title: 'E' } }];
+  issue.sections.events.enabled = true;
+  const removed = deleteItem(issue, 'e1');
+  assert.equal(issue.sections.events.enabled, false);
+  insertItem(issue, removed.sectionKey, removed.index, removed.item);
+  assert.equal(issue.sections.events.enabled, true);
+  assert.equal(issue.sections.events.items.length, 1);
 });

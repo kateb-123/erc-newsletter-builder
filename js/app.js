@@ -7,7 +7,7 @@
  */
 
 import { parseMarkdown } from './parser.js';
-import { SECTION_REGISTRY } from './model.js';
+import { SECTION_REGISTRY, deleteItem, insertItem } from './model.js';
 import { renderNewsletter, renderProse } from './template.js';
 import { issueToMarkdown } from './serialize.js';
 import { saveState, loadState, clearState } from './state.js';
@@ -322,6 +322,55 @@ function isoToDisplayDate(value) {
 }
 
 /**
+ * Delete one item from the issue, with a transient Undo toast. Shared by the
+ * Outline row ✕ and the Preview & Edit card's Delete button. `rerender` rebuilds
+ * whichever step is showing so the removal (and any undo) is reflected at once.
+ */
+let _undoToastTimer = null;
+function deleteItemWithUndo(itemId, rerender) {
+  const removed = deleteItem(state.issue, itemId);
+  if (!removed) return;
+  scheduleSave();
+  rerender();
+  const title = (removed.item.fields && removed.item.fields.title) || 'item';
+  showUndoToast(`Removed “${title}”`, () => {
+    insertItem(state.issue, removed.sectionKey, removed.index, removed.item);
+    scheduleSave();
+    rerender();
+  });
+}
+
+/** Bottom toast with an Undo button; auto-dismisses after a few seconds. */
+function showUndoToast(message, onUndo) {
+  clearTimeout(_undoToastTimer);
+  const prior = document.querySelector('.undo-toast');
+  if (prior) prior.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'undo-toast';
+  const msg = document.createElement('span');
+  msg.className = 'undo-toast__msg';
+  msg.textContent = message;              // user-derived title → textContent only
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'undo-toast__btn';
+  btn.textContent = 'Undo';
+  btn.addEventListener('click', () => {
+    clearTimeout(_undoToastTimer);
+    toast.remove();
+    onUndo();
+  });
+  toast.appendChild(msg);
+  toast.appendChild(btn);
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('undo-toast--visible'));
+  _undoToastTimer = setTimeout(() => {
+    toast.classList.remove('undo-toast--visible');
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+  }, 6000);
+}
+
+/**
  * Render the triage step UI from `state.issue`.
  * Called each time the wizard navigates to the 'triage' step.
  */
@@ -523,6 +572,17 @@ function renderTriage() {
             reorderGroup.appendChild(upBtn);
             reorderGroup.appendChild(downBtn);
             evRow.appendChild(reorderGroup);
+
+            // Delete this item from the issue (with Undo). Trims overflow without
+            // going back to the source .md.
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'triage-delete-btn';
+            delBtn.textContent = '✕';
+            delBtn.setAttribute('aria-label', `Delete "${title}"`);
+            delBtn.title = 'Remove this item from the newsletter';
+            delBtn.addEventListener('click', () => deleteItemWithUndo(item.id, renderTriage));
+            evRow.appendChild(delBtn);
 
             sectionContainer.appendChild(evRow);
           }
@@ -966,6 +1026,19 @@ function openItemEditor(refs, iframe) {
   saveBtn.className = 'btn btn-primary edit-card-save';
   saveBtn.textContent = 'Save';
   saveBtn.addEventListener('click', () => closeCard(key));
+  // Delete this whole item (with Undo) — only for real items, not the intro.
+  const itemId = refs[0] && refs[0].item;
+  if (itemId) {
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'edit-card-delete';
+    delBtn.textContent = 'Delete item';
+    delBtn.addEventListener('click', () => {
+      closeCard(key);
+      deleteItemWithUndo(itemId, renderEdit);
+    });
+    actions.appendChild(delBtn);
+  }
   actions.appendChild(revertBtn);
   actions.appendChild(saveBtn);
   card.appendChild(actions);

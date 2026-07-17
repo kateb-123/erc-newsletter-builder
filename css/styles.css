@@ -963,6 +963,18 @@ body:has([data-step="edit"]:not([hidden])) .step-list {
 }
 .edit-card-revert:hover { color: var(--bp-destructive); }
 .edit-card-save { padding: 7px 18px; font-size: 0.85rem; }
+.edit-card-delete { margin-right: auto; background: transparent; border: 1px solid var(--bp-input-border); color: var(--bp-muted); padding: 7px 14px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; }
+.edit-card-delete:hover { border-color: var(--bp-destructive); color: var(--bp-destructive); }
+
+/* Outline row delete (✕) — quiet until the row is hovered/focused. */
+.triage-delete-btn { border: none; background: transparent; color: var(--bp-ghost); font-size: 0.95rem; line-height: 1; padding: 4px 7px; margin-left: 6px; border-radius: 6px; cursor: pointer; transition: color 0.15s, background 0.15s; }
+.triage-delete-btn:hover { color: var(--bp-destructive); background: var(--bp-row-hover); }
+
+/* Undo toast (bottom-center) for item deletes. */
+.undo-toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px); display: flex; align-items: center; gap: 14px; background: var(--bp-ink); color: #fff; padding: 11px 16px; border-radius: 10px; box-shadow: 0 6px 24px rgba(23, 26, 43, 0.28); font-size: 0.85rem; opacity: 0; transition: opacity 0.18s, transform 0.18s; z-index: 1000; }
+.undo-toast--visible { opacity: 1; transform: translate(-50%, 0); }
+.undo-toast__btn { background: transparent; border: none; color: #B9C2FF; font-weight: 700; font-family: var(--bp-heading-font); font-size: 0.85rem; cursor: pointer; padding: 2px 4px; }
+.undo-toast__btn:hover { color: #fff; text-decoration: underline; }
 
 /* --- Export step ------------------------------------------ */
 .export-desc {

@@ -62,3 +62,30 @@ export function groupByAlias(sectionKey, groupText) {
   const g = sec.groups.find(g => g.aliases.some(a => norm(a) === n));
   return g ? g.key : '';
 }
+
+/**
+ * Remove one item from the issue by id. Returns { sectionKey, index, item }
+ * so the caller can offer Undo (re-insert at the same spot), or null if not
+ * found. Empties auto-disable the section (matches the empty-section rule).
+ */
+export function deleteItem(issue, itemId) {
+  for (const sectionKey of Object.keys(issue.sections)) {
+    const items = issue.sections[sectionKey].items;
+    const index = items.findIndex(it => it.id === itemId);
+    if (index === -1) continue;
+    const [item] = items.splice(index, 1);
+    issue.sections[sectionKey].enabled = items.length > 0;
+    return { sectionKey, index, item };
+  }
+  return null;
+}
+
+/** Re-insert a previously deleted item at its original spot (the Undo path). */
+export function insertItem(issue, sectionKey, index, item) {
+  const sec = issue.sections[sectionKey];
+  if (!sec) return issue;
+  const at = Math.max(0, Math.min(index, sec.items.length));
+  sec.items.splice(at, 0, item);
+  sec.enabled = true;
+  return issue;
+}
